@@ -2,6 +2,13 @@
 
 A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models. Built with a tool-based approach that empowers LLMs rather than trying to replace their natural language understanding capabilities.
 
+## 📚 Documentation
+
+- [API Reference](./docs/API-REFERENCE.md) - Detailed API documentation for all MCP tools
+- [CLI Guide](./docs/CLI-GUIDE.md) - Command-line interface usage and examples
+- [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
+- [Examples](./examples/README.md) - Sample models and use cases
+
 ## Features
 
 ### Core Tools
@@ -44,6 +51,23 @@ bun test
 ```
 
 ## Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd system-designer-mcp
+
+# Install dependencies
+bun install
+
+# Build the project
+bun run build
+
+# Run tests
+bun test
+```
 
 ### Using the MCP Server
 
@@ -88,6 +112,23 @@ const exported = await mcpClient.callTool('export_to_system_designer', {
   filePath: './student_system.json',
 });
 ```
+
+### CLI Usage
+
+The server includes a CLI tool for testing and model management:
+
+```bash
+# Test System Designer integration
+bun run src/cli.ts test-integration
+
+# Export a test model
+bun run src/cli.ts export-model MyModel "Test model description"
+
+# Show configuration
+bun run src/cli.ts config
+```
+
+See the [CLI Guide](./docs/CLI-GUIDE.md) for detailed usage instructions.
 
 ### Example MSON Model Structure
 
@@ -147,64 +188,25 @@ const exported = await mcpClient.callTool('export_to_system_designer', {
 
 ## Tool Reference
 
-### create_mson_model
+For detailed API documentation, see the [API Reference](./docs/API-REFERENCE.md).
 
-Creates and validates a MSON model from structured data.
+### Available Tools
 
-**Parameters:**
+- **create_mson_model** - Create and validate MSON models from structured data
+- **validate_mson_model** - Validate MSON model consistency and completeness
+- **generate_uml_diagram** - Generate UML diagrams in PlantUML and Mermaid formats
+- **export_to_system_designer** - Export models to System Designer application format
 
-- `name` (string, required): Name of the model
-- `type` (enum, required): Model type - "class", "component", "deployment", or "usecase"
-- `description` (string, optional): Description of the model
-- `entities` (array, required): Array of entities in the model
-- `relationships` (array, optional): Array of relationships between entities
+## Platform Integration
 
-**Returns:**
+The server can be integrated with various platforms:
 
-- Validated MSON model with unique IDs
-- Success confirmation with model statistics
+- **Claude Desktop** - Native MCP integration
+- **VS Code** - Extension development support
+- **Web Applications** - React/Node.js integration
+- **CLI Tools** - Command-line interface
 
-### validate_mson_model
-
-Validates MSON model consistency and completeness.
-
-**Parameters:**
-
-- `model` (object, required): MSON model to validate
-
-**Returns:**
-
-- Validation results with warnings and errors
-- Entity and relationship counts
-- Orphaned relationship detection
-
-### generate_uml_diagram
-
-Generates UML diagrams from MSON models.
-
-**Parameters:**
-
-- `model` (object, required): MSON model object
-- `format` (enum, optional): Output format - "plantuml" (default) or "mermaid"
-
-**Returns:**
-
-- Generated diagram markup in requested format
-- Ready-to-use PlantUML or Mermaid code
-
-### export_to_system_designer
-
-Exports MSON model to System Designer application format.
-
-**Parameters:**
-
-- `model` (object, required): MSON model to export
-- `filePath` (string, optional): File path to save the exported file
-
-**Returns:**
-
-- Export success confirmation with file location
-- System Designer-compatible JSON format
+See the [Integration Guide](./docs/INTEGRATION-GUIDE.md) for detailed setup instructions.
 
 ## Architecture
 
@@ -251,17 +253,24 @@ bun start
 
 ```
 src/
-├── index.ts              # Main MCP server entry point
-├── types.ts              # MSON type definitions and Zod schemas
-├── tools/
-│   ├── create-model.ts    # create_mson_model tool
-│   ├── validate-model.ts # validate_mson_model tool
-│   ├── generate-diagram.ts # generate_uml_diagram tool
-│   └── export-model.ts   # export_to_system_designer tool
-└── utils/
-    ├── plantuml.ts       # PlantUML generation utilities
-    ├── mermaid.ts        # Mermaid generation utilities
-    └── validation.ts     # Model validation utilities
+├── index.ts                    # Main MCP server with all tools
+├── cli.ts                      # Command-line interface
+└── integration/
+    └── system-designer.ts     # System Designer app integration
+
+test/
+└── tool-based.test.ts         # Comprehensive test suite
+
+docs/
+├── API-REFERENCE.md           # Detailed API documentation
+├── CLI-GUIDE.md              # CLI usage guide
+└── INTEGRATION-GUIDE.md      # Platform integration guide
+
+examples/
+├── banking-system.json        # Sample banking system model
+├── banking-system-plantuml.puml  # PlantUML output example
+├── banking-system-mermaid.md  # Mermaid output example
+└── README.md                  # Example documentation
 ```
 
 ## Integration with System Designer

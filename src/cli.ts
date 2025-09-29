@@ -1,154 +1,138 @@
 #!/usr/bin/env node
 
-// WHY: This CLI tool helps us test our MCP server and System Designer integration
-// without needing to set up a full MCP client. It's a utility for development
-// and testing, making it easier to verify that everything works correctly.
+import { Command } from 'commander';
+import { SystemDesignerIntegration } from './integration/system-designer.js';
+import * as path from 'path';
 
-import { SystemDesignerIntegration, IntegrationTestResult } from './integration/system-designer.js';
+enum CliCommand {
+  TEST_INTEGRATION = 'test-integration',
+  EXPORT_MODEL = 'export-model',
+  CONFIG = 'config',
+  HELP = 'help',
+}
+
+interface CliOptions {
+  verbose?: boolean;
+}
+
+interface ExportModelOptions extends CliOptions {
+  description?: string;
+}
 
 class CLI {
-  private integration: SystemDesignerIntegration;
+  private readonly integration: SystemDesignerIntegration;
+  private readonly program: Command;
 
   constructor() {
     this.integration = new SystemDesignerIntegration();
+    this.program = this.setupProgram();
   }
 
-  async runCommand(args: string[]): Promise<void> {
-    const [command, ...commandArgs] = args;
+  private setupProgram(): Command {
+    const program = new Command()
+      .name('system-designer-mcp')
+      .description('CLI for System Designer MCP Server integration')
+      .version('1.0.0');
+
+    program
+      .command(CliCommand.TEST_INTEGRATION)
+      .description('Test System Designer integration')
+      .option('-v, --verbose', 'Enable verbose output')
+      .action(this.testIntegration.bind(this));
+
+    program
+      .command(CliCommand.EXPORT_MODEL)
+      .description('Export a test MSON model to System Designer')
+      .argument('<model-name>', 'Name of the model to export')
+      .option('-d, --description <description>', 'Model description', 'Test model created via CLI')
+      .option('-v, --verbose', 'Enable verbose output')
+      .action(this.exportModel.bind(this));
+
+    program
+      .command(CliCommand.CONFIG)
+      .description('Show current configuration')
+      .action(this.showConfig.bind(this));
+
+    return program;
+  }
+
+  private async testIntegration(options: CliOptions): Promise<void> {
+    if (options.verbose) {
+      console.error('🔍 Testing System Designer integration...\n');
+    }
 
     try {
-      switch (command) {
-        case 'test-integration':
-          await this.testIntegration();
-          break;
-        case 'export-model':
-          await this.exportModel(commandArgs);
-          break;
-        case 'config':
-          this.showConfig();
-          break;
-        case 'help':
-        default:
-          this.showHelp();
-          break;
+      const result = await this.integration.testIntegration();
+
+      console.error('📊 Integration Test Results:');
+      console.error(
+        `✅ System Designer installed: ${result.systemDesignerInstalled ? 'YES' : 'NO'}`
+      );
+      console.error(`✅ Can access app data: ${result.canAccessAppData ? 'YES' : 'NO'}`);
+      console.error(`✅ Can write models: ${result.canWriteModels ? 'YES' : 'NO'}`);
+
+      if (result.errors.length > 0) {
+        console.error('\n❌ Issues found:');
+        result.errors.forEach((error, index) => {
+          console.error(`   ${index + 1}. ${error}`);
+        });
+        process.exit(1);
+      } else {
+        console.error('\n🎉 All tests passed! Integration should work correctly.');
       }
     } catch (error) {
-      console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
-      process.exit(1);
+      this.handleError('Integration test failed', error);
     }
   }
 
-  private async testIntegration(): Promise<void> {
-    // WHY: This command tests if our System Designer integration works.
-    // It checks directory permissions, app installation, and file access.
-    console.error('🔍 Testing System Designer integration...\n');
+  private async exportModel(modelName: string, options: ExportModelOptions): Promise<void> {
+    if (options.verbose) {
+      console.error(`📤 Exporting model '${modelName}' to System Designer...`);
+    }
 
-    const result = await this.integration.testIntegration();
+    try {
+      const msonModel = this.createTestModel(modelName, options.description);
+      const msonContent = JSON.stringify(msonModel, null, 2);
 
-    console.error('📊 Integration Test Results:');
-    console.error(`✅ System Designer installed: ${result.systemDesignerInstalled ? 'YES' : 'NO'}`);
-    console.error(`✅ Can access app data: ${result.canAccessAppData ? 'YES' : 'NO'}`);
-    console.error(`✅ Can write models: ${result.canWriteModels ? 'YES' : 'NO'}`);
+      await this.integration.exportMsonModel(modelName, msonContent);
 
-    if (result.errors.length > 0) {
-      console.error('\n❌ Issues found:');
-      result.errors.forEach((error, index) => {
-        console.error(`   ${index + 1}. ${error}`);
-      });
-    } else {
-      console.error('\n🎉 All tests passed! Integration should work correctly.');
+      const config = this.integration.getConfig();
+      console.error(`✅ Model '${modelName}' exported successfully!`);
+      console.error(`📁 Location: ${path.join(config.modelsPath, `${modelName}.json`)}`);
+      console.error('💡 Note: You may need to refresh System Designer to see the new model.');
+    } catch (error) {
+      this.handleError('Model export failed', error);
     }
   }
 
-  private async exportModel(args: string[]): Promise<void> {
-    // WHY: This command lets us test exporting MSON models to System Designer.
-    // It's useful for testing the integration without going through the MCP server.
-
-    const [modelName, ...descriptionParts] = args;
-
-    if (!modelName) {
-      console.error('❌ Usage: export-model <model-name> [description]');
-      console.error('   Example: export-model User "A user management system"');
-      return;
-    }
-
-    const description = descriptionParts.join(' ') || 'Test model created via CLI';
-
-    console.error(`📤 Exporting model '${modelName}' to System Designer...`);
-
-    // Create a simple MSON model for testing
-    const msonModel = {
+  private createTestModel(modelName: string, description: string): object {
+    return {
       name: modelName,
       description,
       types: [
-        {
-          name: 'String',
-          primitive: true,
-        },
-        {
-          name: 'Number',
-          primitive: true,
-        },
-        {
-          name: 'Boolean',
-          primitive: true,
-        },
+        { name: 'String', primitive: true },
+        { name: 'Number', primitive: true },
+        { name: 'Boolean', primitive: true },
       ],
       classes: [
         {
           name: modelName,
           properties: [
-            {
-              name: 'id',
-              type: 'String',
-              multiplicity: '1',
-            },
-            {
-              name: 'name',
-              type: 'String',
-              multiplicity: '1',
-            },
-            {
-              name: 'createdAt',
-              type: 'String',
-              multiplicity: '0..1',
-            },
+            { name: 'id', type: 'String', multiplicity: '1' },
+            { name: 'name', type: 'String', multiplicity: '1' },
+            { name: 'createdAt', type: 'String', multiplicity: '0..1' },
           ],
           methods: [
-            {
-              name: 'save',
-              parameters: [],
-              returnType: 'Boolean',
-            },
-            {
-              name: 'delete',
-              parameters: [],
-              returnType: 'Boolean',
-            },
+            { name: 'save', parameters: [], returnType: 'Boolean' },
+            { name: 'delete', parameters: [], returnType: 'Boolean' },
           ],
         },
       ],
       relationships: [],
     };
-
-    const msonContent = JSON.stringify(msonModel, null, 2);
-
-    try {
-      await this.integration.exportMsonModel(modelName, msonContent);
-      console.error(`✅ Model '${modelName}' exported successfully!`);
-      console.error(`📁 Location: ${this.integration.getConfig().modelsPath}/${modelName}.json`);
-      console.error('💡 Note: You may need to refresh System Designer to see the new model.');
-    } catch (error) {
-      console.error(
-        `❌ Failed to export model: ${error instanceof Error ? error.message : 'Unknown error'}`
-      );
-    }
   }
 
   private showConfig(): void {
-    // WHY: This command shows the current configuration, helping users understand
-    // where files are being written and what settings are being used.
-
     console.error('⚙️  System Designer Integration Configuration:\n');
 
     const config = this.integration.getConfig();
@@ -166,28 +150,24 @@ class CLI {
     console.error('   - You may need to manually refresh System Designer after exporting models');
   }
 
-  private showHelp(): void {
-    // WHY: Help text makes the CLI user-friendly and shows what commands are available.
+  private handleError(context: string, error: unknown): void {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`❌ ${context}: ${errorMessage}`);
+    process.exit(1);
+  }
 
-    console.error('🛠️  System Designer MCP Server CLI\n');
-    console.error('Usage: bun run src/cli.ts <command> [options]\n');
-    console.error('Commands:');
-    console.error('   test-integration    Test System Designer integration');
-    console.error('   export-model <name> [desc]  Export a test MSON model');
-    console.error('   config              Show current configuration');
-    console.error('   help                Show this help message\n');
-    console.error('Examples:');
-    console.error('   bun run src/cli.ts test-integration');
-    console.error('   bun run src/cli.ts export-model User "User management system"');
-    console.error('   bun run src/cli.ts config');
+  async run(argv: string[] = process.argv): Promise<void> {
+    try {
+      await this.program.parseAsync(argv);
+    } catch (error) {
+      this.handleError('CLI execution failed', error);
+    }
   }
 }
 
-// WHY: This is the entry point for our CLI. It creates the CLI instance
-// and runs the command with the provided arguments.
-async function main() {
+async function main(): Promise<void> {
   const cli = new CLI();
-  await cli.runCommand(process.argv.slice(2));
+  await cli.run();
 }
 
 main();
