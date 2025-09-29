@@ -1,13 +1,70 @@
+# Dependencies
 node_modules/
-*.log
+bun.lockb
+
+# Build outputs
 dist/
+build/
+
+# Testing
 coverage/
+*.lcov
+.nyc_output/
+
+# Environment variables
 .env
 .env.local
-.DS_Store
+.env.development
+.env.test
+.env.production
+
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# IDE and editor files
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
 *.tmp
 *.temp
+*.cache
+
+# Test files in root directory
+test-*.ts
+direct-*.ts
+
+# Docker
 .dockerignore
-bun.lockb
+Dockerfile
+docker/
+
+# Debug files
+*.debug
+*.dump
+
+# Local development files
+*.local
+.dev.env
