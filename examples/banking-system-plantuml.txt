@@ -1,0 +1,164 @@
+@startuml Banking System
+
+!define AWSPUML https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v18.0/dist
+!include AWSPUML/AWSCommon.puml
+!include AWSPUML/AWSSecurity.puml
+
+' Core Banking Entities
+class Customer {
+  - customerId: string
+  - firstName: string
+  - lastName: string
+  - email: string
+  - phone: string
+  - dateOfBirth: Date
+  - address: Address
+  - creditScore: number
+  --
+  + openAccount(accountType: string): Account
+  + closeAccount(account: Account): boolean
+  + applyForLoan(loanAmount: number, loanType: string): LoanApplication
+  + getAccountBalance(account: Account): number
+  + transferFunds(fromAccount: Account, toAccount: Account, amount: number): boolean
+}
+
+class Account {
+  - accountNumber: string
+  - accountType: string
+  - balance: number
+  - interestRate: number
+  - dateOpened: Date
+  + isActive: boolean {readOnly}
+  - minimumBalance: number
+  --
+  + deposit(amount: number): boolean
+  + withdraw(amount: number): boolean
+  + getBalance(): number
+  + getTransactionHistory(): Transaction[]
+  + calculateInterest(): number
+  + closeAccount(): boolean
+}
+
+class Transaction {
+  - transactionId: string
+  - transactionType: string
+  - amount: number
+  - timestamp: Date
+  - description: string
+  - status: string
+  - fromAccount: Account
+  - toAccount: Account
+  --
+  + processTransaction(): boolean
+  + validateTransaction(): boolean
+  + getTransactionDetails(): string
+}
+
+class Loan {
+  - loanId: string
+  - loanType: string
+  - principalAmount: number
+  - interestRate: number
+  - termMonths: number
+  - startDate: Date
+  - endDate: Date
+  - monthlyPayment: number
+  - outstandingBalance: number
+  - loanStatus: string
+  --
+  + calculateMonthlyPayment(): number
+  + makePayment(amount: number): boolean
+  + getRemainingBalance(): number
+  + refinanceLoan(newInterestRate: number): boolean
+}
+
+' Supporting Entities
+class Branch {
+  - branchId: string
+  - branchName: string
+  - address: Address
+  - phoneNumber: string
+  - manager: Employee
+  - operatingHours: string
+  --
+  + openBranch(): boolean
+  + closeBranch(): boolean
+  + addCustomer(customer: Customer): boolean
+  + getBranchDetails(): string
+}
+
+class Employee {
+  - employeeId: string
+  - firstName: string
+  - lastName: string
+  - position: string
+  - department: string
+  - salary: number
+  - hireDate: Date
+  - branch: Branch
+  --
+  + processTransaction(transaction: Transaction): boolean
+  + approveLoan(loanApplication: LoanApplication): boolean
+  + openCustomerAccount(customer: Customer, accountType: string): Account
+  + getEmployeeDetails(): string
+}
+
+class Address {
+  - street: string
+  - city: string
+  - state: string
+  - zipCode: string
+  - country: string
+  --
+  + validateAddress(): boolean
+  + getFullAddress(): string
+  + updateAddress(newAddress: Address): boolean
+}
+
+class LoanApplication {
+  - applicationId: string
+  - customer: Customer
+  - loanType: string
+  - requestedAmount: number
+  - applicationDate: Date
+  - applicationStatus: string
+  - creditScore: number
+  - income: number
+  - approvedBy: Employee
+  - approvalDate: Date
+  --
+  + submitApplication(): boolean
+  + updateStatus(status: string): boolean
+  + getApprovalStatus(): string
+  + calculateLoanTerms(): Loan
+}
+
+' Relationships
+Customer "1" -- "0..*" Account : owns
+Account "1" -- "0..*" Transaction : has
+Customer "1" -- "0..*" Loan : has
+Customer "1" -- "0..*" LoanApplication : submits
+Branch "1" -- "0..*" Customer : serves
+Branch "1" -- "0..*" Employee : employs
+Employee "1" -- "1" Branch : "works at"
+Customer "1" -- "1" Address : "lives at"
+Branch "1" -- "1" Address : "located at"
+LoanApplication "1" -- "0..1" Employee : "approved by"
+LoanApplication "1" -- "0..1" Loan : "results in"
+
+' Styling
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam rectangle {
+  BackgroundColor #LightBlue
+  BorderColor #DarkBlue
+}
+skinparam class {
+  BackgroundColor #LightGreen
+  BorderColor #DarkGreen
+  ArrowColor #Black
+}
+
+title Banking System - UML Class Diagram
+
+@enduml

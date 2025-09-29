@@ -83,16 +83,16 @@ class CLI {
       types: [
         {
           name: 'String',
-          primitive: true
+          primitive: true,
         },
         {
           name: 'Number',
-          primitive: true
+          primitive: true,
         },
         {
           name: 'Boolean',
-          primitive: true
-        }
+          primitive: true,
+        },
       ],
       classes: [
         {
@@ -101,34 +101,34 @@ class CLI {
             {
               name: 'id',
               type: 'String',
-              multiplicity: '1'
+              multiplicity: '1',
             },
             {
               name: 'name',
               type: 'String',
-              multiplicity: '1'
+              multiplicity: '1',
             },
             {
               name: 'createdAt',
               type: 'String',
-              multiplicity: '0..1'
-            }
+              multiplicity: '0..1',
+            },
           ],
           methods: [
             {
               name: 'save',
               parameters: [],
-              returnType: 'Boolean'
+              returnType: 'Boolean',
             },
             {
               name: 'delete',
               parameters: [],
-              returnType: 'Boolean'
-            }
-          ]
-        }
+              returnType: 'Boolean',
+            },
+          ],
+        },
       ],
-      relationships: []
+      relationships: [],
     };
 
     const msonContent = JSON.stringify(msonModel, null, 2);
@@ -139,7 +139,9 @@ class CLI {
       console.error(`📁 Location: ${this.integration.getConfig().modelsPath}/${modelName}.json`);
       console.error('💡 Note: You may need to refresh System Designer to see the new model.');
     } catch (error) {
-      console.error(`❌ Failed to export model: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error(
+        `❌ Failed to export model: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 

@@ -54,7 +54,9 @@ export class SystemDesignerIntegration {
         await this.tryRefreshApp();
       }
     } catch (error) {
-      throw new Error(`Failed to export MSON model: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to export MSON model: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -82,7 +84,9 @@ export class SystemDesignerIntegration {
 
     // TODO: Implement AppleScript to refresh System Designer
     // For now, we'll just log that we tried
-    console.error('Auto-refresh not yet implemented - user may need to manually refresh System Designer');
+    console.error(
+      'Auto-refresh not yet implemented - user may need to manually refresh System Designer'
+    );
   }
 
   async testIntegration(): Promise<IntegrationTestResult> {
@@ -102,7 +106,9 @@ export class SystemDesignerIntegration {
       await this.ensureDirectoryExists(this.config.appDataPath);
       result.canAccessAppData = true;
     } catch (error) {
-      result.errors.push(`Cannot access app data directory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      result.errors.push(
+        `Cannot access app data directory: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     try {
@@ -113,7 +119,9 @@ export class SystemDesignerIntegration {
       await Bun.$`rm "${testFile}"`;
       result.canWriteModels = true;
     } catch (error) {
-      result.errors.push(`Cannot write to models directory: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      result.errors.push(
+        `Cannot write to models directory: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
 
     // Check if System Designer is installed (basic check)

@@ -5,12 +5,14 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 ## Features
 
 ### Core Tools
+
 - **create_mson_model**: Create and validate MSON models from structured data
-- **validate_mson_model**: Validate MSON model consistency and completeness  
+- **validate_mson_model**: Validate MSON model consistency and completeness
 - **generate_uml_diagram**: Generate UML diagrams in PlantUML and Mermaid formats
 - **export_to_system_designer**: Export models to System Designer application format
 
 ### Key Capabilities
+
 - ✅ **Tool-Based Architecture**: LLMs handle understanding, server handles validation/formatting
 - ✅ **Type Safety**: Comprehensive Zod schema validation for all inputs and outputs
 - ✅ **Multiple UML Formats**: Support for both PlantUML and Mermaid diagram generation
@@ -20,10 +22,12 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 ## Installation
 
 ### Prerequisites
+
 - [Bun](https://bun.sh/) JavaScript runtime
 - Node.js compatibility through Bun
 
 ### Setup
+
 ```bash
 # Clone the repository
 git clone <repository-url>
@@ -44,6 +48,7 @@ bun test
 ### Using the MCP Server
 
 1. **Start the server**:
+
 ```bash
 bun run dev
 ```
@@ -53,36 +58,34 @@ bun run dev
 ```javascript
 // Create a MSON model
 const model = await mcpClient.callTool('create_mson_model', {
-  name: "Student Management System",
-  type: "class",
-  description: "A system for managing students and courses",
+  name: 'Student Management System',
+  type: 'class',
+  description: 'A system for managing students and courses',
   entities: [
     {
-      id: "student",
-      name: "Student",
-      type: "class",
+      id: 'student',
+      name: 'Student',
+      type: 'class',
       attributes: [
-        { name: "id", type: "string", visibility: "private" },
-        { name: "name", type: "string", visibility: "public" }
+        { name: 'id', type: 'string', visibility: 'private' },
+        { name: 'name', type: 'string', visibility: 'public' },
       ],
-      methods: [
-        { name: "enroll", returnType: "void", visibility: "public" }
-      ]
-    }
+      methods: [{ name: 'enroll', returnType: 'void', visibility: 'public' }],
+    },
   ],
-  relationships: []
+  relationships: [],
 });
 
 // Generate UML diagram
 const diagram = await mcpClient.callTool('generate_uml_diagram', {
   model: model.content[1].json,
-  format: "plantuml"
+  format: 'plantuml',
 });
 
 // Export to System Designer
 const exported = await mcpClient.callTool('export_to_system_designer', {
   model: model.content[1].json,
-  filePath: "./student_system.json"
+  filePath: './student_system.json',
 });
 ```
 
@@ -106,7 +109,7 @@ const exported = await mcpClient.callTool('export_to_system_designer', {
           "visibility": "private"
         },
         {
-          "name": "name", 
+          "name": "name",
           "type": "string",
           "visibility": "public"
         }
@@ -130,7 +133,7 @@ const exported = await mcpClient.callTool('export_to_system_designer', {
     {
       "id": "enrollment",
       "from": "student",
-      "to": "course", 
+      "to": "course",
       "type": "association",
       "multiplicity": {
         "from": "1",
@@ -149,6 +152,7 @@ const exported = await mcpClient.callTool('export_to_system_designer', {
 Creates and validates a MSON model from structured data.
 
 **Parameters:**
+
 - `name` (string, required): Name of the model
 - `type` (enum, required): Model type - "class", "component", "deployment", or "usecase"
 - `description` (string, optional): Description of the model
@@ -156,6 +160,7 @@ Creates and validates a MSON model from structured data.
 - `relationships` (array, optional): Array of relationships between entities
 
 **Returns:**
+
 - Validated MSON model with unique IDs
 - Success confirmation with model statistics
 
@@ -164,9 +169,11 @@ Creates and validates a MSON model from structured data.
 Validates MSON model consistency and completeness.
 
 **Parameters:**
+
 - `model` (object, required): MSON model to validate
 
 **Returns:**
+
 - Validation results with warnings and errors
 - Entity and relationship counts
 - Orphaned relationship detection
@@ -176,10 +183,12 @@ Validates MSON model consistency and completeness.
 Generates UML diagrams from MSON models.
 
 **Parameters:**
+
 - `model` (object, required): MSON model object
 - `format` (enum, optional): Output format - "plantuml" (default) or "mermaid"
 
 **Returns:**
+
 - Generated diagram markup in requested format
 - Ready-to-use PlantUML or Mermaid code
 
@@ -188,10 +197,12 @@ Generates UML diagrams from MSON models.
 Exports MSON model to System Designer application format.
 
 **Parameters:**
+
 - `model` (object, required): MSON model to export
 - `filePath` (string, optional): File path to save the exported file
 
 **Returns:**
+
 - Export success confirmation with file location
 - System Designer-compatible JSON format
 
@@ -222,7 +233,7 @@ This server uses a tool-based architecture that:
 # Run all tests
 bun test
 
-# Run tests in watch mode  
+# Run tests in watch mode
 bun test --watch
 ```
 

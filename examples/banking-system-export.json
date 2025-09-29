@@ -1,0 +1,306 @@
+{
+  "systemDesigner": {
+    "version": "1.0.0",
+    "model": {
+      "name": "Banking System",
+      "type": "class",
+      "description": "A comprehensive banking system for managing accounts, customers, transactions, and loans",
+      "createdAt": "2025-09-29T02:31:00.000Z",
+      "exportedFrom": "System Designer MCP Server",
+      "statistics": {
+        "entities": 8,
+        "relationships": 11,
+        "totalMethods": 36,
+        "totalAttributes": 49
+      }
+    },
+    "entities": [
+      {
+        "id": "customer",
+        "name": "Customer",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "customerId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "firstName", "type": "string", "visibility": "private" },
+          { "name": "lastName", "type": "string", "visibility": "private" },
+          { "name": "email", "type": "string", "visibility": "private" },
+          { "name": "phone", "type": "string", "visibility": "private" },
+          { "name": "dateOfBirth", "type": "Date", "visibility": "private" },
+          { "name": "address", "type": "Address", "visibility": "private" },
+          { "name": "creditScore", "type": "number", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "openAccount", "returnType": "Account", "visibility": "public" },
+          { "name": "closeAccount", "returnType": "boolean", "visibility": "public" },
+          { "name": "applyForLoan", "returnType": "LoanApplication", "visibility": "public" },
+          { "name": "getAccountBalance", "returnType": "number", "visibility": "public" },
+          { "name": "transferFunds", "returnType": "boolean", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "account",
+        "name": "Account",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "accountNumber", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "accountType", "type": "string", "visibility": "private" },
+          { "name": "balance", "type": "number", "visibility": "private" },
+          { "name": "interestRate", "type": "number", "visibility": "private" },
+          { "name": "dateOpened", "type": "Date", "visibility": "private" },
+          { "name": "isActive", "type": "boolean", "visibility": "private", "isReadOnly": true },
+          { "name": "minimumBalance", "type": "number", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "deposit", "returnType": "boolean", "visibility": "public" },
+          { "name": "withdraw", "returnType": "boolean", "visibility": "public" },
+          { "name": "getBalance", "returnType": "number", "visibility": "public" },
+          {
+            "name": "getTransactionHistory",
+            "returnType": "Transaction[]",
+            "visibility": "public"
+          },
+          { "name": "calculateInterest", "returnType": "number", "visibility": "public" },
+          { "name": "closeAccount", "returnType": "boolean", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "transaction",
+        "name": "Transaction",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "transactionId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "transactionType", "type": "string", "visibility": "private" },
+          { "name": "amount", "type": "number", "visibility": "private" },
+          { "name": "timestamp", "type": "Date", "visibility": "private" },
+          { "name": "description", "type": "string", "visibility": "private" },
+          { "name": "status", "type": "string", "visibility": "private" },
+          { "name": "fromAccount", "type": "Account", "visibility": "private" },
+          { "name": "toAccount", "type": "Account", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "processTransaction", "returnType": "boolean", "visibility": "public" },
+          { "name": "validateTransaction", "returnType": "boolean", "visibility": "public" },
+          { "name": "getTransactionDetails", "returnType": "string", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "loan",
+        "name": "Loan",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "loanId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "loanType", "type": "string", "visibility": "private" },
+          { "name": "principalAmount", "type": "number", "visibility": "private" },
+          { "name": "interestRate", "type": "number", "visibility": "private" },
+          { "name": "termMonths", "type": "number", "visibility": "private" },
+          { "name": "startDate", "type": "Date", "visibility": "private" },
+          { "name": "endDate", "type": "Date", "visibility": "private" },
+          { "name": "monthlyPayment", "type": "number", "visibility": "private" },
+          { "name": "outstandingBalance", "type": "number", "visibility": "private" },
+          { "name": "loanStatus", "type": "string", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "calculateMonthlyPayment", "returnType": "number", "visibility": "public" },
+          { "name": "makePayment", "returnType": "boolean", "visibility": "public" },
+          { "name": "getRemainingBalance", "returnType": "number", "visibility": "public" },
+          { "name": "refinanceLoan", "returnType": "boolean", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "branch",
+        "name": "Branch",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "branchId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "branchName", "type": "string", "visibility": "private" },
+          { "name": "address", "type": "Address", "visibility": "private" },
+          { "name": "phoneNumber", "type": "string", "visibility": "private" },
+          { "name": "manager", "type": "Employee", "visibility": "private" },
+          { "name": "operatingHours", "type": "string", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "openBranch", "returnType": "boolean", "visibility": "public" },
+          { "name": "closeBranch", "returnType": "boolean", "visibility": "public" },
+          { "name": "addCustomer", "returnType": "boolean", "visibility": "public" },
+          { "name": "getBranchDetails", "returnType": "string", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "employee",
+        "name": "Employee",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "employeeId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "firstName", "type": "string", "visibility": "private" },
+          { "name": "lastName", "type": "string", "visibility": "private" },
+          { "name": "position", "type": "string", "visibility": "private" },
+          { "name": "department", "type": "string", "visibility": "private" },
+          { "name": "salary", "type": "number", "visibility": "private" },
+          { "name": "hireDate", "type": "Date", "visibility": "private" },
+          { "name": "branch", "type": "Branch", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "processTransaction", "returnType": "boolean", "visibility": "public" },
+          { "name": "approveLoan", "returnType": "boolean", "visibility": "public" },
+          { "name": "openCustomerAccount", "returnType": "Account", "visibility": "public" },
+          { "name": "getEmployeeDetails", "returnType": "string", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "address",
+        "name": "Address",
+        "type": "class",
+        "stereotype": "value",
+        "attributes": [
+          { "name": "street", "type": "string", "visibility": "private" },
+          { "name": "city", "type": "string", "visibility": "private" },
+          { "name": "state", "type": "string", "visibility": "private" },
+          { "name": "zipCode", "type": "string", "visibility": "private" },
+          { "name": "country", "type": "string", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "validateAddress", "returnType": "boolean", "visibility": "public" },
+          { "name": "getFullAddress", "returnType": "string", "visibility": "public" },
+          { "name": "updateAddress", "returnType": "boolean", "visibility": "public" }
+        ]
+      },
+      {
+        "id": "loanApplication",
+        "name": "LoanApplication",
+        "type": "class",
+        "stereotype": "entity",
+        "attributes": [
+          { "name": "applicationId", "type": "string", "visibility": "private", "isKey": true },
+          { "name": "customer", "type": "Customer", "visibility": "private" },
+          { "name": "loanType", "type": "string", "visibility": "private" },
+          { "name": "requestedAmount", "type": "number", "visibility": "private" },
+          { "name": "applicationDate", "type": "Date", "visibility": "private" },
+          { "name": "applicationStatus", "type": "string", "visibility": "private" },
+          { "name": "creditScore", "type": "number", "visibility": "private" },
+          { "name": "income", "type": "number", "visibility": "private" },
+          { "name": "approvedBy", "type": "Employee", "visibility": "private" },
+          { "name": "approvalDate", "type": "Date", "visibility": "private" }
+        ],
+        "methods": [
+          { "name": "submitApplication", "returnType": "boolean", "visibility": "public" },
+          { "name": "updateStatus", "returnType": "boolean", "visibility": "public" },
+          { "name": "getApprovalStatus", "returnType": "string", "visibility": "public" },
+          { "name": "calculateLoanTerms", "returnType": "Loan", "visibility": "public" }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "id": "customer_accounts",
+        "from": "customer",
+        "to": "account",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "owns",
+        "bidirectional": true
+      },
+      {
+        "id": "account_transactions",
+        "from": "account",
+        "to": "transaction",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "has",
+        "bidirectional": true
+      },
+      {
+        "id": "customer_loans",
+        "from": "customer",
+        "to": "loan",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "has",
+        "bidirectional": true
+      },
+      {
+        "id": "customer_loan_applications",
+        "from": "customer",
+        "to": "loanApplication",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "submits",
+        "bidirectional": true
+      },
+      {
+        "id": "branch_customers",
+        "from": "branch",
+        "to": "customer",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "serves",
+        "bidirectional": true
+      },
+      {
+        "id": "branch_employees",
+        "from": "branch",
+        "to": "employee",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..*" },
+        "name": "employs",
+        "bidirectional": true
+      },
+      {
+        "id": "employee_branch",
+        "from": "employee",
+        "to": "branch",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "1" },
+        "name": "works at",
+        "bidirectional": true
+      },
+      {
+        "id": "customer_address",
+        "from": "customer",
+        "to": "address",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "1" },
+        "name": "lives at",
+        "bidirectional": true
+      },
+      {
+        "id": "branch_address",
+        "from": "branch",
+        "to": "address",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "1" },
+        "name": "located at",
+        "bidirectional": true
+      },
+      {
+        "id": "loanApplication_approvedBy",
+        "from": "loanApplication",
+        "to": "employee",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..1" },
+        "name": "approved by",
+        "bidirectional": true
+      },
+      {
+        "id": "loanApplication_loan",
+        "from": "loanApplication",
+        "to": "loan",
+        "type": "association",
+        "multiplicity": { "from": "1", "to": "0..1" },
+        "name": "results in",
+        "bidirectional": true
+      }
+    ],
+    "metadata": {
+      "exportDate": "2025-09-29T02:31:00.000Z",
+      "exportVersion": "1.0.0",
+      "mcpServer": "system-designer-mcp",
+      "mcpServerVersion": "1.0.0"
+    }
+  }
+}

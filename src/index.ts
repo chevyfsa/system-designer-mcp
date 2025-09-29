@@ -1,9 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
 // WHY: This is the main entry point of our MCP server. It initializes the server,
@@ -15,38 +12,62 @@ const MsonEntitySchema = z.object({
   id: z.string(),
   name: z.string(),
   type: z.enum(['class', 'interface', 'enum', 'component', 'actor']),
-  attributes: z.array(z.object({
-    name: z.string(),
-    type: z.string(),
-    visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
-    isStatic: z.boolean().optional().default(false),
-    isReadOnly: z.boolean().optional().default(false)
-  })).optional().default([]),
-  methods: z.array(z.object({
-    name: z.string(),
-    parameters: z.array(z.object({
-      name: z.string(),
-      type: z.string()
-    })).optional().default([]),
-    returnType: z.string().optional().default('void'),
-    visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
-    isStatic: z.boolean().optional().default(false),
-    isAbstract: z.boolean().optional().default(false)
-  })).optional().default([]),
+  attributes: z
+    .array(
+      z.object({
+        name: z.string(),
+        type: z.string(),
+        visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
+        isStatic: z.boolean().optional().default(false),
+        isReadOnly: z.boolean().optional().default(false),
+      })
+    )
+    .optional()
+    .default([]),
+  methods: z
+    .array(
+      z.object({
+        name: z.string(),
+        parameters: z
+          .array(
+            z.object({
+              name: z.string(),
+              type: z.string(),
+            })
+          )
+          .optional()
+          .default([]),
+        returnType: z.string().optional().default('void'),
+        visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
+        isStatic: z.boolean().optional().default(false),
+        isAbstract: z.boolean().optional().default(false),
+      })
+    )
+    .optional()
+    .default([]),
   stereotype: z.string().optional(),
-  namespace: z.string().optional()
+  namespace: z.string().optional(),
 });
 
 const MsonRelationshipSchema = z.object({
   id: z.string(),
   from: z.string(),
   to: z.string(),
-  type: z.enum(['association', 'inheritance', 'implementation', 'dependency', 'aggregation', 'composition']),
-  multiplicity: z.object({
-    from: z.string().optional(),
-    to: z.string().optional()
-  }).optional(),
-  name: z.string().optional()
+  type: z.enum([
+    'association',
+    'inheritance',
+    'implementation',
+    'dependency',
+    'aggregation',
+    'composition',
+  ]),
+  multiplicity: z
+    .object({
+      from: z.string().optional(),
+      to: z.string().optional(),
+    })
+    .optional(),
+  name: z.string().optional(),
 });
 
 const MsonModelSchema = z.object({
@@ -55,7 +76,7 @@ const MsonModelSchema = z.object({
   type: z.enum(['class', 'component', 'deployment', 'usecase']),
   description: z.string().optional(),
   entities: z.array(MsonEntitySchema),
-  relationships: z.array(MsonRelationshipSchema)
+  relationships: z.array(MsonRelationshipSchema),
 });
 
 type MsonEntity = z.infer<typeof MsonEntitySchema>;
@@ -71,7 +92,8 @@ class SystemDesignerMCPServer {
       {
         name: 'system-designer-mcp',
         version: '1.0.0',
-        description: 'MCP server for System Designer - Tool-based approach for creating UML diagrams and system models',
+        description:
+          'MCP server for System Designer - Tool-based approach for creating UML diagrams and system models',
       },
       {
         capabilities: {
@@ -121,7 +143,7 @@ class SystemDesignerMCPServer {
                       name: { type: 'string' },
                       type: {
                         type: 'string',
-                        enum: ['class', 'interface', 'enum', 'component', 'actor']
+                        enum: ['class', 'interface', 'enum', 'component', 'actor'],
                       },
                       stereotype: { type: 'string' },
                       namespace: { type: 'string' },
@@ -134,12 +156,12 @@ class SystemDesignerMCPServer {
                             type: { type: 'string' },
                             visibility: {
                               type: 'string',
-                              enum: ['public', 'private', 'protected']
+                              enum: ['public', 'private', 'protected'],
                             },
                             isStatic: { type: 'boolean' },
-                            isReadOnly: { type: 'boolean' }
-                          }
-                        }
+                            isReadOnly: { type: 'boolean' },
+                          },
+                        },
                       },
                       methods: {
                         type: 'array',
@@ -153,23 +175,23 @@ class SystemDesignerMCPServer {
                                 type: 'object',
                                 properties: {
                                   name: { type: 'string' },
-                                  type: { type: 'string' }
-                                }
-                              }
+                                  type: { type: 'string' },
+                                },
+                              },
                             },
                             returnType: { type: 'string' },
                             visibility: {
                               type: 'string',
-                              enum: ['public', 'private', 'protected']
+                              enum: ['public', 'private', 'protected'],
                             },
                             isStatic: { type: 'boolean' },
-                            isAbstract: { type: 'boolean' }
-                          }
-                        }
-                      }
+                            isAbstract: { type: 'boolean' },
+                          },
+                        },
+                      },
                     },
-                    required: ['id', 'name', 'type']
-                  }
+                    required: ['id', 'name', 'type'],
+                  },
                 },
                 relationships: {
                   type: 'array',
@@ -182,20 +204,27 @@ class SystemDesignerMCPServer {
                       to: { type: 'string' },
                       type: {
                         type: 'string',
-                        enum: ['association', 'inheritance', 'implementation', 'dependency', 'aggregation', 'composition']
+                        enum: [
+                          'association',
+                          'inheritance',
+                          'implementation',
+                          'dependency',
+                          'aggregation',
+                          'composition',
+                        ],
                       },
                       multiplicity: {
                         type: 'object',
                         properties: {
                           from: { type: 'string' },
-                          to: { type: 'string' }
-                        }
+                          to: { type: 'string' },
+                        },
                       },
-                      name: { type: 'string' }
+                      name: { type: 'string' },
                     },
-                    required: ['id', 'from', 'to', 'type']
-                  }
-                }
+                    required: ['id', 'from', 'to', 'type'],
+                  },
+                },
               },
               required: ['name', 'type', 'entities'],
             },
@@ -259,7 +288,7 @@ class SystemDesignerMCPServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
-        try {
+      try {
         switch (name) {
           case 'create_mson_model':
             return this.handleCreateMsonModel(args);
@@ -312,14 +341,14 @@ class SystemDesignerMCPServer {
     const finalModel: MsonModel = {
       ...model,
       id: model.id || `model_${Date.now()}`,
-      entities: model.entities.map(entity => ({
+      entities: model.entities.map((entity) => ({
         ...entity,
-        id: entity.id || `entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        id: entity.id || `entity_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       })),
-      relationships: model.relationships.map(relationship => ({
+      relationships: model.relationships.map((relationship) => ({
         ...relationship,
-        id: relationship.id || `rel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      }))
+        id: relationship.id || `rel_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      })),
     };
 
     return {
@@ -376,15 +405,19 @@ Please check your model structure and try again.`,
 
     // Perform additional business logic validation
     const warnings: string[] = [];
-    const entityIds = new Set(validatedModel.entities.map(e => e.id));
+    const entityIds = new Set(validatedModel.entities.map((e) => e.id));
 
     // Check for orphaned relationships
     for (const relationship of validatedModel.relationships) {
       if (!entityIds.has(relationship.from)) {
-        warnings.push(`Relationship '${relationship.id}' references non-existent 'from' entity: ${relationship.from}`);
+        warnings.push(
+          `Relationship '${relationship.id}' references non-existent 'from' entity: ${relationship.from}`
+        );
       }
       if (!entityIds.has(relationship.to)) {
-        warnings.push(`Relationship '${relationship.id}' references non-existent 'to' entity: ${relationship.to}`);
+        warnings.push(
+          `Relationship '${relationship.id}' references non-existent 'to' entity: ${relationship.to}`
+        );
       }
     }
 
@@ -408,8 +441,12 @@ Type: ${validatedModel.type}
 Entities: ${validatedModel.entities.length}
 Relationships: ${validatedModel.relationships.length}
 
-${warnings.length > 0 ? `⚠️ Warnings (${warnings.length}):
-${warnings.map(w => `- ${w}`).join('\n')}` : 'No warnings detected.'}
+${
+  warnings.length > 0
+    ? `⚠️ Warnings (${warnings.length}):
+${warnings.map((w) => `- ${w}`).join('\n')}`
+    : 'No warnings detected.'
+}
 
 Model is ready for UML generation and export.`,
         },
@@ -490,7 +527,8 @@ ${umlOutput}
 
       // Add attributes
       for (const attr of entity.attributes) {
-        const visibility = attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
+        const visibility =
+          attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
         const staticStr = attr.isStatic ? '{static} ' : '';
         const readOnlyStr = attr.isReadOnly ? '{readOnly} ' : '';
         uml += `  ${visibility}${staticStr}${readOnlyStr}${attr.name}: ${attr.type}\n`;
@@ -498,10 +536,11 @@ ${umlOutput}
 
       // Add methods
       for (const method of entity.methods) {
-        const visibility = method.visibility === 'private' ? '-' : method.visibility === 'protected' ? '#' : '+';
+        const visibility =
+          method.visibility === 'private' ? '-' : method.visibility === 'protected' ? '#' : '+';
         const staticStr = method.isStatic ? '{static} ' : '';
         const abstractStr = method.isAbstract ? '{abstract} ' : '';
-        const params = method.parameters.map(p => `${p.name}: ${p.type}`).join(', ');
+        const params = method.parameters.map((p) => `${p.name}: ${p.type}`).join(', ');
         uml += `  ${visibility}${staticStr}${abstractStr}${method.name}(${params}): ${method.returnType}\n`;
       }
 
@@ -536,7 +575,7 @@ ${umlOutput}
       const toMultiplicity = rel.multiplicity?.to ? `"${rel.multiplicity.to}"` : '';
       const relName = rel.name ? `: ${rel.name}` : '';
 
-      uml += `${model.entities.find(e => e.id === rel.from)?.name} ${fromMultiplicity} ${relStr} ${toMultiplicity} ${model.entities.find(e => e.id === rel.to)?.name} ${relName}\n`;
+      uml += `${model.entities.find((e) => e.id === rel.from)?.name} ${fromMultiplicity} ${relStr} ${toMultiplicity} ${model.entities.find((e) => e.id === rel.to)?.name} ${relName}\n`;
     }
 
     uml += '@enduml';
@@ -549,12 +588,14 @@ ${umlOutput}
 
     // Add entities
     for (const entity of model.entities) {
-      const classType = entity.type === 'interface' ? 'interface' : entity.type === 'enum' ? 'enum' : 'class';
+      const classType =
+        entity.type === 'interface' ? 'interface' : entity.type === 'enum' ? 'enum' : 'class';
       mermaid += `${classType} ${entity.name} {\n`;
 
       // Add attributes
       for (const attr of entity.attributes) {
-        const visibility = attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
+        const visibility =
+          attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
         const staticStr = attr.isStatic ? '*' : '';
         const readOnlyStr = attr.isReadOnly ? '?' : '';
         mermaid += `    ${visibility}${staticStr}${readOnlyStr}${attr.name}${attr.type ? ': ' + attr.type : ''}\n`;
@@ -562,10 +603,13 @@ ${umlOutput}
 
       // Add methods
       for (const method of entity.methods) {
-        const visibility = method.visibility === 'private' ? '-' : method.visibility === 'protected' ? '#' : '+';
+        const visibility =
+          method.visibility === 'private' ? '-' : method.visibility === 'protected' ? '#' : '+';
         const staticStr = method.isStatic ? '*' : '';
         const abstractStr = method.isAbstract ? '*' : '';
-        const params = method.parameters.map(p => `${p.name}${p.type ? ': ' + p.type : ''}`).join(', ');
+        const params = method.parameters
+          .map((p) => `${p.name}${p.type ? ': ' + p.type : ''}`)
+          .join(', ');
         mermaid += `    ${visibility}${staticStr}${abstractStr}${method.name}(${params})${method.returnType ? ': ' + method.returnType : ''}\n`;
       }
 
@@ -596,8 +640,8 @@ ${umlOutput}
           break;
       }
 
-      const fromName = model.entities.find(e => e.id === rel.from)?.name;
-      const toName = model.entities.find(e => e.id === rel.to)?.name;
+      const fromName = model.entities.find((e) => e.id === rel.from)?.name;
+      const toName = model.entities.find((e) => e.id === rel.to)?.name;
       const relName = rel.name ? `: ${rel.name}` : '';
 
       if (fromName && toName) {
@@ -637,12 +681,13 @@ Error: ${validationResult.error.message}`,
         modelType: validatedModel.type,
         description: validatedModel.description || '',
         createdAt: new Date().toISOString(),
-        exportedBy: 'system-designer-mcp'
+        exportedBy: 'system-designer-mcp',
       },
-      model: validatedModel
+      model: validatedModel,
     };
 
-    const fileName = filePath || `${validatedModel.name.replace(/[^a-zA-Z0-9]/g, '_')}_system_designer.json`;
+    const fileName =
+      filePath || `${validatedModel.name.replace(/[^a-zA-Z0-9]/g, '_')}_system_designer.json`;
 
     try {
       await Bun.write(fileName, JSON.stringify(systemDesignerFormat, null, 2));

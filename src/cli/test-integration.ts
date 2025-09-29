@@ -20,7 +20,9 @@ async function testIntegration() {
     // TODO: Why are we checking for errors based on the result of the integration based on length?
     if (result.errors.length > 0) {
       console.log('\n❌ Errors found:');
-      result.errors.forEach(error => { console.log(`   - ${error}`); });
+      result.errors.forEach((error) => {
+        console.log(`   - ${error}`);
+      });
     }
 
     console.log('\nConfiguration:');
@@ -37,9 +39,11 @@ async function testIntegration() {
     } else {
       console.log('❌ Integration needs setup. Please check the errors above.');
     }
-
   } catch (error) {
-    console.error('❌ Integration test failed:', error instanceof Error ? error.message : 'Unknown error');
+    console.error(
+      '❌ Integration test failed:',
+      error instanceof Error ? error.message : 'Unknown error'
+    );
     process.exit(1);
   }
 }
