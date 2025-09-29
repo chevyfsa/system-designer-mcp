@@ -1,6 +1,7 @@
 {
   "name": "system-designer-mcp",
   "version": "1.0.0",
+  "type": "module",
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=node",
@@ -15,10 +16,13 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.2",
-    "zod": "^4.1.11"
+    "zod": "^4.1.11",
+    "fs-extra": "^11.3.2",
+    "commander": "^14.0.1"
   },
   "devDependencies": {
     "@types/bun": "^1.2.23",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.5.2",
     "@typescript-eslint/eslint-plugin": "^8.44.1",
     "@typescript-eslint/parser": "^8.44.1",
