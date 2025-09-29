@@ -3,6 +3,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { SystemDesignerIntegration } from './integration/system-designer.js';
 import { z } from 'zod';
 import { writeFile } from 'fs-extra';
+import { randomUUID } from 'crypto';
 
 // ============================================================================
 // SCHEMA DEFINITIONS
@@ -107,9 +108,7 @@ class SystemDesignerMCPServer {
     const validationResult = MsonModelSchema.safeParse(args);
     if (!validationResult.success) {
       return {
-        content: [
-          { type: 'text', text: `Validation Error: ${validationResult.error.message}` },
-        ],
+        content: [{ type: 'text', text: `Validation Error: ${validationResult.error.message}` }],
         isError: true,
       };
     }
@@ -441,7 +440,14 @@ File saved at: ${fileName}`;
               },
               type: {
                 type: 'string',
-                enum: ['association', 'inheritance', 'implementation', 'dependency', 'aggregation', 'composition'],
+                enum: [
+                  'association',
+                  'inheritance',
+                  'implementation',
+                  'dependency',
+                  'aggregation',
+                  'composition',
+                ],
                 description: 'Type of relationship',
               },
               multiplicity: {
@@ -465,10 +471,10 @@ File saved at: ${fileName}`;
             required: ['id', 'from', 'to', 'type'],
           },
         },
-      required: ['name', 'type'],
-      additionalProperties: false,
-    },
-    (args) => this.handleCreateMsonModel(args)
+        required: ['name', 'type'],
+        additionalProperties: false,
+      },
+      (args) => this.handleCreateMsonModel(args)
     );
 
     // Tool: Validate MSON Model
@@ -542,11 +548,11 @@ File saved at: ${fileName}`;
       id: model.id || `model_${Date.now()}`,
       entities: model.entities.map((entity) => ({
         ...entity,
-        id: entity.id || `entity_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        id: entity.id || `entity_${randomUUID()}`,
       })),
       relationships: model.relationships.map((relationship) => ({
         ...relationship,
-        id: relationship.id || `rel_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+        id: relationship.id || `rel_${randomUUID()}`,
       })),
     };
   }
