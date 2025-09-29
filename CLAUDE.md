@@ -39,6 +39,19 @@ bun test
 bun test --watch
 ```
 
+### CLI Usage
+
+```bash
+# Test System Designer integration
+bun run src/cli.ts test-integration
+
+# Export a test model
+bun run src/cli.ts export-model MyModel "Test model description"
+
+# Show configuration
+bun run src/cli.ts config
+```
+
 ## Architecture
 
 ### Single-File Structure
@@ -74,14 +87,17 @@ The server follows a tool-based approach where:
 
 - `@modelcontextprotocol/sdk` - MCP server framework
 - `zod` - Type-safe validation schemas
+- `fs-extra` - Enhanced file system operations
+- `commander` - CLI framework for command-line interface
 
 ### Code Style
 
-- **ESLint** - TypeScript linting with recommended rules
+- **ESLint** - TypeScript linting with recommended rules, configured for both source and test files
 - **Prettier** - Code formatting with 100-character line width
 - **Semi-colons** - Enabled
 - **Single quotes** - Enabled
 - **Trailing commas** - ES5 style
+- **TypeScript** - Strict mode enabled, ES2022 target, CommonJS modules
 
 ### MSON Model Structure
 
@@ -98,19 +114,29 @@ Models use Zod schemas with these key components:
 - Tests in `test/` directory use Bun's built-in test runner
 - Tool-based testing validates MCP server functionality
 - Test data includes proper IDs to avoid validation errors
+- Tests access private methods using `@ts-expect-error` comments
 
 ### Code Organization
 
-- Single large file with clear section comments
-- Zod schemas defined at the top for type safety
+- Single large file with clear section comments (schemas → tools → server)
+- Zod schemas defined at the top for type safety and reusability
 - Tool handlers as separate functions within the main file
 - Utility functions inline where used
+- CLI separated into `src/cli.ts` for testing and integration
 
 ### Integration Patterns
 
 - File-based communication with System Designer macOS app
 - Exports to multiple formats (JSON, PlantUML, Mermaid)
 - No direct API dependencies - uses file system operations
+- Integration module handles System Designer specific functionality
+
+### Error Handling
+
+- Comprehensive Zod validation with detailed error messages
+- Automatic ID generation for missing entity IDs
+- Orphan detection ensures relationships reference valid entities
+- Graceful fallbacks for file system operations
 
 ## Important Notes
 
@@ -119,3 +145,5 @@ Models use Zod schemas with these key components:
 - No separate tool files exist despite directory structure
 - Zod schemas provide comprehensive validation
 - Tool-based approach means LLM creates structured data, server validates/exports
+- Test files must include proper entity IDs to pass validation
+- ESLint is configured to ignore `dist/` and `node_modules/` directories
