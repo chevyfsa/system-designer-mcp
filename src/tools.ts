@@ -7,9 +7,11 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import {
   CreateMsonModelInputSchema,
+  CreateSystemRuntimeBundleInputSchema,
   ExportToSystemDesignerInputSchema,
   GenerateUmlDiagramInputSchema,
   ValidateMsonModelInputSchema,
+  ValidateSystemRuntimeBundleInputSchema,
 } from './schemas.js';
 
 /**
@@ -28,6 +30,12 @@ export interface ToolHandlers {
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
   handleExportToSystemDesigner: (
     params: z.infer<z.ZodObject<typeof ExportToSystemDesignerInputSchema>>
+  ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
+  handleCreateSystemRuntimeBundle: (
+    params: z.infer<z.ZodObject<typeof CreateSystemRuntimeBundleInputSchema>>
+  ) => Promise<{ content: Array<{ type: string; text?: string; json?: any }>; isError?: boolean }>;
+  handleValidateSystemRuntimeBundle: (
+    params: z.infer<z.ZodObject<typeof ValidateSystemRuntimeBundleInputSchema>>
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
 }
 
@@ -88,5 +96,33 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     },
     // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleExportToSystemDesigner(params)
+  );
+
+  // Tool: Create System Runtime Bundle
+  server.registerTool(
+    'create_system_runtime_bundle',
+    {
+      title: 'Create System Runtime Bundle',
+      description:
+        'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
+      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
+      inputSchema: CreateSystemRuntimeBundleInputSchema,
+    },
+    // @ts-expect-error - Type inference from Zod schema
+    async (params) => handlers.handleCreateSystemRuntimeBundle(params)
+  );
+
+  // Tool: Validate System Runtime Bundle
+  server.registerTool(
+    'validate_system_runtime_bundle',
+    {
+      title: 'Validate System Runtime Bundle',
+      description:
+        'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
+      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
+      inputSchema: ValidateSystemRuntimeBundleInputSchema,
+    },
+    // @ts-expect-error - Type inference from Zod schema
+    async (params) => handlers.handleValidateSystemRuntimeBundle(params)
   );
 }

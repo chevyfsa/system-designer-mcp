@@ -5,7 +5,9 @@ import { randomUUID } from 'node:crypto';
 
 import { MsonModelSchema } from './schemas.js';
 import { setupTools } from './tools.js';
+import { msonToSystemRuntimeBundle } from './transformers/system-runtime.js';
 import type { MsonModel, ValidationWarning } from './types.js';
+import { validateSystemRuntimeBundle } from './validators/system-runtime.js';
 
 // ============================================================================
 // MAIN SERVER CLASS
@@ -26,6 +28,8 @@ class SystemDesignerMCPServer {
       handleValidateMsonModel: this.handleValidateMsonModel.bind(this),
       handleGenerateUmlDiagram: this.handleGenerateUmlDiagram.bind(this),
       handleExportToSystemDesigner: this.handleExportToSystemDesigner.bind(this),
+      handleCreateSystemRuntimeBundle: this.handleCreateSystemRuntimeBundle.bind(this),
+      handleValidateSystemRuntimeBundle: this.handleValidateSystemRuntimeBundle.bind(this),
     });
   }
 
@@ -202,6 +206,128 @@ File saved at: ${fileName}`;
           {
             type: 'text',
             text: `❌ Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleCreateSystemRuntimeBundle(args: unknown): Promise<any> {
+    const { model, version } = args as { model: unknown; version?: string };
+
+    // Validate MSON model
+    const validationResult = MsonModelSchema.safeParse(model);
+    if (!validationResult.success) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Invalid MSON model: ${validationResult.error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    try {
+      // Transform to System Runtime bundle
+      const bundle = msonToSystemRuntimeBundle(validationResult.data, version);
+
+      // Validate the generated bundle
+      const bundleValidation = validateSystemRuntimeBundle(bundle);
+
+      if (!bundleValidation.isValid) {
+        const errors = bundleValidation.warnings.filter((w) => w.severity === 'error');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Bundle validation failed:\n${errors.map((e) => `  - ${e.message}`).join('\n')}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      const warnings = bundleValidation.warnings.filter((w) => w.severity === 'warning');
+      const warningText =
+        warnings.length > 0
+          ? `\n\n⚠️  Warnings:\n${warnings.map((w) => `  - ${w.message}`).join('\n')}`
+          : '';
+
+      const successMessage = `✅ System Runtime Bundle Created Successfully:
+
+Name: ${bundle.name}
+Version: ${bundle.version}
+Description: ${bundle.description}
+
+Bundle Structure:
+- Schemas: ${Object.keys(bundle.schemas).length}
+- Models: ${Object.keys(bundle.models).length}
+- Types: ${Object.keys(bundle.types).length}
+- Behaviors: ${Object.keys(bundle.behaviors).length}
+- Component Types: ${Object.keys(bundle.components).length}${warningText}`;
+
+      return {
+        content: [
+          { type: 'text', text: successMessage },
+          { type: 'text', text: '\n\nSystem Runtime Bundle (JSON):' },
+          { type: 'text', text: JSON.stringify(bundle, null, 2) },
+        ],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Bundle creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  }
+
+  private async handleValidateSystemRuntimeBundle(args: unknown): Promise<any> {
+    const { bundle } = args as { bundle: unknown };
+
+    try {
+      const validation = validateSystemRuntimeBundle(bundle);
+
+      const errors = validation.warnings.filter((w) => w.severity === 'error');
+      const warnings = validation.warnings.filter((w) => w.severity === 'warning');
+
+      if (!validation.isValid) {
+        const errorMessage = `❌ Bundle Validation Failed:
+
+Errors (${errors.length}):
+${errors.map((e) => `  - ${e.message}`).join('\n')}
+
+${warnings.length > 0 ? `Warnings (${warnings.length}):\n${warnings.map((w) => `  - ${w.message}`).join('\n')}` : ''}`;
+
+        return {
+          content: [{ type: 'text', text: errorMessage }],
+          isError: true,
+        };
+      }
+
+      const successMessage = `✅ System Runtime Bundle is Valid!
+
+Bundle: ${validation.bundle?.name || 'Unknown'}
+Version: ${validation.bundle?.version || 'Unknown'}
+
+${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map((w) => `  - ${w.message}`).join('\n')}` : 'No warnings detected.'}`;
+
+      return {
+        content: [{ type: 'text', text: successMessage }],
+      };
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `❌ Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         ],
         isError: true,

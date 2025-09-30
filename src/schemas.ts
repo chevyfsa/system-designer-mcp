@@ -191,6 +191,27 @@ export const ExportToSystemDesignerInputSchema = {
   filePath: z.string().optional().describe('Optional file path for the exported file'),
 };
 
+/**
+ * Input schema shape for create_system_runtime_bundle tool
+ * Converts MSON model to System Runtime bundle format
+ */
+export const CreateSystemRuntimeBundleInputSchema = {
+  model: z.unknown().describe('The MSON model to convert to System Runtime bundle'),
+  version: z
+    .string()
+    .optional()
+    .default('0.0.1')
+    .describe('Optional version string for the bundle (semver format)'),
+};
+
+/**
+ * Input schema shape for validate_system_runtime_bundle tool
+ * Validates a System Runtime bundle for correctness
+ */
+export const ValidateSystemRuntimeBundleInputSchema = {
+  bundle: z.unknown().describe('The System Runtime bundle to validate'),
+};
+
 // ============================================================================
 // SYSTEM RUNTIME SCHEMAS
 // ============================================================================
