@@ -1,13 +1,44 @@
-# Banking System Example
+# System Designer MCP Server Examples
 
-This example demonstrates a comprehensive banking system model created using the System Designer MCP Server.
+This directory contains example MSON models demonstrating the capabilities of the System Designer MCP Server. All examples were generated using the modern MCP SDK patterns with `server.registerTool()` and Zod validation schemas.
 
-## Files Overview
+## Available Examples
 
-- **`banking-system.json`** - MSON model definition (raw JSON format)
+### 1. Student Management System (Simple)
+
+A simple educational example demonstrating basic class relationships.
+
+**Files:**
+
+- **`student-system.json`** - MSON model definition
+- **`student-system-plantuml.puml`** - PlantUML class diagram
+- **`student-system-mermaid.md`** - Mermaid class diagram
+- **`student-system-export.json`** - System Designer export format
+
+**Features:**
+
+- 2 entities (Student, Course)
+- 1 relationship (Student enrolls in Course)
+- Basic attributes and methods
+- Association with multiplicity
+
+### 2. Banking System (Complex)
+
+A comprehensive banking system demonstrating advanced modeling capabilities.
+
+**Files:**
+
+- **`banking-system.json`** - MSON model definition
 - **`banking-system-plantuml.puml`** - PlantUML class diagram
-- **`banking-system-mermaid.md`** - Mermaid class diagram with documentation
+- **`banking-system-mermaid.md`** - Mermaid class diagram
 - **`banking-system-export.json`** - System Designer export format
+
+**Features:**
+
+- 8 entities (Customer, Account, Transaction, Loan, Branch, Employee, Address, LoanApplication)
+- 11 relationships with various multiplicities
+- Complex business logic and workflows
+- Multiple relationship types (association, composition, aggregation)
 
 ## System Architecture
 
@@ -74,38 +105,80 @@ This example demonstrates a comprehensive banking system model created using the
 - Branch operations
 - Address management
 
-## Usage Examples
+## How These Examples Were Generated
 
-### Using with System Designer MCP Server
+All examples in this directory were generated using the System Designer MCP Server with modern SDK patterns:
+
+1. **Model Creation**: Using `create_mson_model` tool with Zod-validated input schemas
+2. **Validation**: Using `validate_mson_model` tool to ensure consistency
+3. **UML Generation**: Using `generate_uml_diagram` tool for both PlantUML and Mermaid formats
+4. **Export**: Using `export_to_system_designer` tool for System Designer app integration
+
+### Generation Script
+
+You can regenerate these examples using the included script:
 
 ```bash
-# Import the model into the MCP server
-cat banking-system.json | xargs -I {} mcp-client call-tool create_mson_model --model-file {}
-
-# Generate UML diagrams
-mcp-client call-tool generate_uml_diagram --model banking-system.json --format plantuml
-mcp-client call-tool generate_uml_diagram --model banking-system.json --format mermaid
-
-# Export to System Designer
-mcp-client call-tool export_to_system_designer --model banking-system.json --output banking-system-export.json
+bun run scripts/generate-examples.ts
 ```
 
-### Using the Diagrams
+This script demonstrates:
 
-#### PlantUML
+- Modern `server.registerTool()` API usage
+- Zod schema validation
+- Type-safe handler methods
+- All 4 MCP tools in action
+
+## Using the Examples
+
+### 1. With MCP Client
+
+```javascript
+// Create a model
+const model = await mcpClient.callTool('create_mson_model', {
+  name: 'Student Management System',
+  type: 'class',
+  entities: [
+    /* ... */
+  ],
+  relationships: [
+    /* ... */
+  ],
+});
+
+// Validate the model
+const validation = await mcpClient.callTool('validate_mson_model', {
+  model: model.content[1].json,
+});
+
+// Generate UML diagram
+const diagram = await mcpClient.callTool('generate_uml_diagram', {
+  model: model.content[1].json,
+  format: 'plantuml', // or 'mermaid'
+});
+
+// Export to System Designer
+const exported = await mcpClient.callTool('export_to_system_designer', {
+  model: model.content[1].json,
+  filePath: './output.json',
+});
+```
+
+### 2. With PlantUML
 
 ```bash
 # Generate PNG from PlantUML
+plantuml student-system-plantuml.puml
 plantuml banking-system-plantuml.puml
 ```
 
-#### Mermaid
+### 3. With Mermaid
 
-```markdown
-# Copy the mermaid code into any Mermaid-enabled platform
+Copy the Mermaid code into any Mermaid-enabled platform:
 
-# GitHub, GitLab, Mermaid Live Editor, etc.
-```
+- GitHub/GitLab markdown
+- Mermaid Live Editor
+- Notion, Obsidian, etc.
 
 ## Statistics
 
@@ -161,14 +234,47 @@ The model can be exported to multiple formats:
 - API endpoints for web banking
 - Audit and compliance features
 
+## Technical Details
+
+### Modern MCP SDK Patterns
+
+These examples demonstrate the modern MCP TypeScript SDK (v1.18.2) patterns:
+
+- **`server.registerTool()`** - Modern tool registration API
+- **Zod Input Schemas** - Type-safe input validation
+- **Title Metadata** - Enhanced UX with tool titles
+- **Type Inference** - Zod-inferred types for parameters
+
+### Modular Architecture
+
+The examples were generated using a modular codebase structure:
+
+- **`src/types.ts`** - TypeScript type definitions
+- **`src/schemas.ts`** - Zod validation schemas
+- **`src/tools.ts`** - Tool registration with modern SDK
+- **`src/index.ts`** - Server class with handler methods
+
+### Validation Features
+
+All models include:
+
+- ✅ Unique entity IDs
+- ✅ Valid relationship references
+- ✅ No orphaned relationships
+- ✅ Proper multiplicity definitions
+- ✅ Type-safe attributes and methods
+
 ## Created With
 
-This example was created using the System Designer MCP Server:
+These examples were created using:
 
 - **MCP Server**: system-designer-mcp v1.0.0
+- **MCP SDK**: @modelcontextprotocol/sdk v1.18.2
+- **Validation**: Zod v4.1.11
+- **Runtime**: Bun JavaScript Runtime
 - **Creation Date**: 2025-09-29
-- **Tools Used**: create_mson_model, generate_uml_diagram, export_to_system_designer
+- **Tools Used**: All 4 MCP tools (create, validate, generate, export)
 
 ## License
 
-This example is provided as-is for educational and demonstration purposes.
+These examples are provided as-is for educational and demonstration purposes.

@@ -1,0 +1,28 @@
+🎨 UML Diagram Generated (PLANTUML):
+
+Model: Student Management System
+Format: plantuml
+
+Copy the markup below into your preferred UML tool:
+
+---
+@startuml
+title Student Management System
+note top of Student
+A simple system for managing students and courses
+end note
+class Student {
+  -id: string
+  +name: string
+  +email: string
+  +enroll(course: Course): void
+}
+class Course {
+  -id: string
+  +title: string
+  +credits: number
+  +addStudent(student: Student): void
+}
+Student "1" --> "0..*" Course : enrolls in
+@enduml
+---

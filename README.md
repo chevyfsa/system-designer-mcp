@@ -1,30 +1,40 @@
 # System Designer MCP Server
 
-A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models. Built with a tool-based approach that empowers LLMs rather than trying to replace their natural language understanding capabilities.
+A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models and System Runtime bundles. Built with a tool-based approach that empowers LLMs to generate complete, executable System Runtime applications.
 
 ## 📚 Documentation
 
 - [API Reference](./docs/API-REFERENCE.md) - Detailed API documentation for all MCP tools
+- [System Runtime Integration Guide](./docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md) - Complete guide to System Runtime bundle creation
 - [CLI Guide](./docs/CLI-GUIDE.md) - Command-line interface usage and examples
 - [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
 - [Examples](./examples/README.md) - Sample models and use cases
+- [Contributing Guide](./CONTRIBUTING.md) - How to contribute to the project
 
 ## Features
 
-### Core Tools
+### Core MSON Tools
 
 - **create_mson_model**: Create and validate MSON models from structured data
 - **validate_mson_model**: Validate MSON model consistency and completeness
 - **generate_uml_diagram**: Generate UML diagrams in PlantUML and Mermaid formats
 - **export_to_system_designer**: Export models to System Designer application format
 
+### System Runtime Tools
+
+- **create_system_runtime_bundle**: Convert MSON models to complete System Runtime bundles
+- **validate_system_runtime_bundle**: Validate System Runtime bundles for correctness and compatibility
+
 ### Key Capabilities
 
 - ✅ **Tool-Based Architecture**: LLMs handle understanding, server handles validation/formatting
 - ✅ **Type Safety**: Comprehensive Zod schema validation for all inputs and outputs
+- ✅ **System Runtime Integration**: Full support for System Runtime bundle generation and validation
+- ✅ **Bidirectional Relationships**: Automatic bidirectional relationship creation
+- ✅ **Multiple Inheritance**: Support for classes implementing multiple interfaces
 - ✅ **Multiple UML Formats**: Support for both PlantUML and Mermaid diagram generation
 - ✅ **System Designer Integration**: Direct export to System Designer macOS application
-- ✅ **Comprehensive Testing**: Full test coverage for all tools and functionality
+- ✅ **Comprehensive Testing**: 46 tests with 303 expect() calls covering all functionality
 
 ## Installation
 
@@ -37,7 +47,7 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/chevyfsa/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -52,11 +62,9 @@ bun test
 
 ## Quick Start
 
-### Installation
-
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/chevyfsa/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -71,13 +79,13 @@ bun test
 
 ### Using the MCP Server
 
-1. **Start the server**:
+**Start the server**:
 
 ```bash
 bun run dev
 ```
 
-2. **Example tool usage**:
+**Example tool usage**:
 
 ```javascript
 // Create a MSON model
@@ -110,6 +118,17 @@ const diagram = await mcpClient.callTool('generate_uml_diagram', {
 const exported = await mcpClient.callTool('export_to_system_designer', {
   model: model.content[1].json,
   filePath: './student_system.json',
+});
+
+// Create System Runtime bundle
+const bundle = await mcpClient.callTool('create_system_runtime_bundle', {
+  model: model.content[1].json,
+  version: '1.0.0',
+});
+
+// Validate System Runtime bundle
+const validation = await mcpClient.callTool('validate_system_runtime_bundle', {
+  bundle: bundle.content[2].text, // JSON bundle from previous step
 });
 ```
 
@@ -210,6 +229,26 @@ See the [Integration Guide](./docs/INTEGRATION-GUIDE.md) for detailed setup inst
 
 ## Architecture
 
+### Modular Structure
+
+The codebase follows SOLID principles with clear separation of concerns:
+
+- **`src/types.ts`** - TypeScript type definitions for MSON models
+- **`src/schemas.ts`** - Zod validation schemas for all data structures
+- **`src/tools.ts`** - MCP tool registration using modern SDK patterns
+- **`src/index.ts`** - Main MCP server class with handler methods
+- **`src/cli.ts`** - Command-line interface for testing and integration
+- **`src/integration/`** - System Designer app integration
+
+### Modern MCP SDK Patterns
+
+The server uses the modern MCP TypeScript SDK (v1.18.2) patterns:
+
+1. **`server.registerTool()`** - Modern tool registration API (not legacy `server.tool()`)
+2. **Zod Input Schemas** - Type-safe input validation with Zod schema shapes
+3. **Title Metadata** - Each tool includes a `title` field for better UX
+4. **Type Inference** - Handler methods use Zod-inferred types for parameters
+
 ### Tool-Based Approach
 
 This server uses a tool-based architecture that:
@@ -251,9 +290,12 @@ bun start
 
 ### Code Structure
 
-```
+```text
 src/
-├── index.ts                    # Main MCP server with all tools
+├── types.ts                    # TypeScript type definitions for MSON models
+├── schemas.ts                  # Zod validation schemas for all data structures
+├── tools.ts                    # MCP tool registration using modern SDK patterns
+├── index.ts                    # Main MCP server class with handler methods
 ├── cli.ts                      # Command-line interface
 └── integration/
     └── system-designer.ts     # System Designer app integration
@@ -283,17 +325,17 @@ The server exports models in a format compatible with the System Designer macOS 
 
 ## Contributing
 
-This project follows a simple contribution model:
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+- Setting up the development environment
+- Running tests and code quality checks
+- Code style guidelines
+- Submitting pull requests
+- Reporting issues
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Acknowledgments
 

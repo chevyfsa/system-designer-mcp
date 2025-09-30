@@ -1,0 +1,107 @@
+{
+  "id": "student_management_system",
+  "name": "Student Management System",
+  "type": "class",
+  "description": "A simple system for managing students and courses",
+  "entities": [
+    {
+      "id": "student",
+      "name": "Student",
+      "type": "class",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "visibility": "public",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "visibility": "public",
+          "isStatic": false,
+          "isReadOnly": false
+        }
+      ],
+      "methods": [
+        {
+          "name": "enroll",
+          "parameters": [
+            {
+              "name": "course",
+              "type": "Course"
+            }
+          ],
+          "returnType": "void",
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
+        }
+      ]
+    },
+    {
+      "id": "course",
+      "name": "Course",
+      "type": "class",
+      "attributes": [
+        {
+          "name": "id",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "visibility": "public",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "credits",
+          "type": "number",
+          "visibility": "public",
+          "isStatic": false,
+          "isReadOnly": false
+        }
+      ],
+      "methods": [
+        {
+          "name": "addStudent",
+          "parameters": [
+            {
+              "name": "student",
+              "type": "Student"
+            }
+          ],
+          "returnType": "void",
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "enrollment",
+      "from": "student",
+      "to": "course",
+      "type": "association",
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
+      "name": "enrolls in"
+    }
+  ]
+}

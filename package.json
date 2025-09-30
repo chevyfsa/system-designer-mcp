@@ -1,7 +1,32 @@
 {
   "name": "system-designer-mcp",
   "version": "1.0.0",
+  "description": "A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models and System Runtime bundles",
   "type": "module",
+  "main": "dist/index.js",
+  "author": "Chevy Phillip",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chevyfsa/system-designer-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chevyfsa/system-designer-mcp/issues"
+  },
+  "homepage": "https://github.com/chevyfsa/system-designer-mcp#readme",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "system-designer",
+    "system-runtime",
+    "uml",
+    "mson",
+    "ai",
+    "llm",
+    "code-generation",
+    "plantuml",
+    "mermaid"
+  ],
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=node",
