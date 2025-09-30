@@ -75,12 +75,16 @@ PRD.md
 docs/SYSTEM-RUNTIME-EXECUTIVE-SUMMARY.md
 docs/SYSTEM-RUNTIME-GAP-ANALYSIS.md
 docs/SYSTEM-RUNTIME-IMPLEMENTATION-HANDOFF.md
+docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md
 docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md
 
 # Backup files
 *.backup
 
+# Git commit message files (temporary)
+.git-commit-msg*.txt
+
 # Development tool directories (local configuration, should not be committed)
-/.augment/rules/
-/.serena/
-/.zed/
+.augment/
+.serena/
+.zed/
