@@ -1,0 +1,556 @@
+{
+  "_id": "sysmg6lqse9pjxs07i6a8r",
+  "name": "Banking System",
+  "description": "A comprehensive banking system for managing accounts, customers, transactions, and loans",
+  "version": "1.0.0",
+  "master": true,
+  "schemas": {
+    "smg6lqse9369y2wze9tn": {
+      "_id": "smg6lqse9369y2wze9tn",
+      "_name": "Customer",
+      "_inherit": [
+        "_Component"
+      ],
+      "customerId": "collection",
+      "firstName": "collection",
+      "lastName": "collection",
+      "email": "collection",
+      "phone": "collection",
+      "dateOfBirth": "collection",
+      "address": "collection",
+      "creditScore": "collection",
+      "openAccount": "method",
+      "closeAccount": "method",
+      "applyForLoan": "method",
+      "getAccountBalance": "method",
+      "transferFunds": "method",
+      "owns": "collection",
+      "has": "collection",
+      "submits": "collection",
+      "branch": "link",
+      "lives at": "link"
+    },
+    "smg6lqse92lui8cwcuyh": {
+      "_id": "smg6lqse92lui8cwcuyh",
+      "_name": "Account",
+      "_inherit": [
+        "_Component"
+      ],
+      "accountNumber": "collection",
+      "accountType": "collection",
+      "balance": "collection",
+      "interestRate": "collection",
+      "dateOpened": "collection",
+      "isActive": "collection",
+      "minimumBalance": "collection",
+      "deposit": "method",
+      "withdraw": "method",
+      "getBalance": "method",
+      "getTransactionHistory": "method",
+      "calculateInterest": "method",
+      "closeAccount": "method",
+      "customer": "link",
+      "has": "collection"
+    },
+    "smg6lqse9ti3nm36iod": {
+      "_id": "smg6lqse9ti3nm36iod",
+      "_name": "Transaction",
+      "_inherit": [
+        "_Component"
+      ],
+      "transactionId": "collection",
+      "transactionType": "collection",
+      "amount": "collection",
+      "timestamp": "collection",
+      "description": "collection",
+      "status": "collection",
+      "fromAccount": "collection",
+      "toAccount": "collection",
+      "processTransaction": "method",
+      "validateTransaction": "method",
+      "getTransactionDetails": "method",
+      "account": "link"
+    },
+    "smg6lqse9wmnf8j6ng1m": {
+      "_id": "smg6lqse9wmnf8j6ng1m",
+      "_name": "Loan",
+      "_inherit": [
+        "_Component"
+      ],
+      "loanId": "collection",
+      "loanType": "collection",
+      "principalAmount": "collection",
+      "interestRate": "collection",
+      "termMonths": "collection",
+      "startDate": "collection",
+      "endDate": "collection",
+      "monthlyPayment": "collection",
+      "outstandingBalance": "collection",
+      "loanStatus": "collection",
+      "calculateMonthlyPayment": "method",
+      "makePayment": "method",
+      "getRemainingBalance": "method",
+      "refinanceLoan": "method",
+      "customer": "link",
+      "loanapplication": "link"
+    },
+    "smg6lqse93noh7ekf4zc": {
+      "_id": "smg6lqse93noh7ekf4zc",
+      "_name": "Branch",
+      "_inherit": [
+        "_Component"
+      ],
+      "branchId": "collection",
+      "branchName": "collection",
+      "address": "collection",
+      "phoneNumber": "collection",
+      "manager": "collection",
+      "operatingHours": "collection",
+      "openBranch": "method",
+      "closeBranch": "method",
+      "addCustomer": "method",
+      "getBranchDetails": "method",
+      "serves": "collection",
+      "employs": "collection",
+      "employee": "link",
+      "located at": "link"
+    },
+    "smg6lqse97g9un4flt4p": {
+      "_id": "smg6lqse97g9un4flt4p",
+      "_name": "Employee",
+      "_inherit": [
+        "_Component"
+      ],
+      "employeeId": "collection",
+      "firstName": "collection",
+      "lastName": "collection",
+      "position": "collection",
+      "department": "collection",
+      "salary": "collection",
+      "hireDate": "collection",
+      "branch": "collection",
+      "processTransaction": "method",
+      "approveLoan": "method",
+      "openCustomerAccount": "method",
+      "getEmployeeDetails": "method",
+      "works at": "link",
+      "loanapplication": "link"
+    },
+    "smg6lqse9j7i6erhxg8": {
+      "_id": "smg6lqse9j7i6erhxg8",
+      "_name": "Address",
+      "_inherit": [
+        "_Component"
+      ],
+      "street": "link",
+      "city": "link",
+      "state": "link",
+      "zipCode": "link",
+      "country": "link",
+      "validateAddress": "method",
+      "getFullAddress": "method",
+      "updateAddress": "method",
+      "customer": "link",
+      "branch": "link"
+    },
+    "smg6lqse996znt7d8ov9": {
+      "_id": "smg6lqse996znt7d8ov9",
+      "_name": "LoanApplication",
+      "_inherit": [
+        "_Component"
+      ],
+      "applicationId": "collection",
+      "customer": "collection",
+      "loanType": "collection",
+      "requestedAmount": "collection",
+      "applicationDate": "collection",
+      "applicationStatus": "collection",
+      "creditScore": "collection",
+      "income": "collection",
+      "approvedBy": "collection",
+      "approvalDate": "collection",
+      "submitApplication": "method",
+      "updateStatus": "method",
+      "getApprovalStatus": "method",
+      "calculateLoanTerms": "method",
+      "approved by": "collection",
+      "results in": "collection"
+    }
+  },
+  "models": {
+    "mmg6lqse9ez3cfdygkwl": {
+      "_id": "mmg6lqse9ez3cfdygkwl",
+      "_name": "Customer",
+      "customerId": [
+        "string"
+      ],
+      "firstName": [
+        "string"
+      ],
+      "lastName": [
+        "string"
+      ],
+      "email": [
+        "string"
+      ],
+      "phone": [
+        "string"
+      ],
+      "dateOfBirth": [
+        "Date"
+      ],
+      "address": [
+        "Address"
+      ],
+      "creditScore": [
+        "number"
+      ],
+      "openAccount": {
+        "=>": "Account",
+        "accountType": "string"
+      },
+      "closeAccount": {
+        "=>": "boolean",
+        "account": "Account"
+      },
+      "applyForLoan": {
+        "=>": "LoanApplication",
+        "loanAmount": "number",
+        "loanType": "string"
+      },
+      "getAccountBalance": {
+        "=>": "number",
+        "account": "Account"
+      },
+      "transferFunds": {
+        "=>": "boolean",
+        "fromAccount": "Account",
+        "toAccount": "Account",
+        "amount": "number"
+      },
+      "owns": [
+        "Account"
+      ],
+      "has": [
+        "Loan"
+      ],
+      "submits": [
+        "LoanApplication"
+      ],
+      "branch": "Branch",
+      "lives at": "Address"
+    },
+    "mmg6lqse9vmu4sgyoman": {
+      "_id": "mmg6lqse9vmu4sgyoman",
+      "_name": "Account",
+      "accountNumber": [
+        "string"
+      ],
+      "accountType": [
+        "string"
+      ],
+      "balance": [
+        "number"
+      ],
+      "interestRate": [
+        "number"
+      ],
+      "dateOpened": [
+        "Date"
+      ],
+      "isActive": [
+        "boolean"
+      ],
+      "minimumBalance": [
+        "number"
+      ],
+      "deposit": {
+        "=>": "boolean",
+        "amount": "number"
+      },
+      "withdraw": {
+        "=>": "boolean",
+        "amount": "number"
+      },
+      "getBalance": {
+        "=>": "number"
+      },
+      "getTransactionHistory": {
+        "=>": "Transaction[]"
+      },
+      "calculateInterest": {
+        "=>": "number"
+      },
+      "closeAccount": {
+        "=>": "boolean"
+      },
+      "customer": "Customer",
+      "has": [
+        "Transaction"
+      ]
+    },
+    "mmg6lqse98jzoitqklxh": {
+      "_id": "mmg6lqse98jzoitqklxh",
+      "_name": "Transaction",
+      "transactionId": [
+        "string"
+      ],
+      "transactionType": [
+        "string"
+      ],
+      "amount": [
+        "number"
+      ],
+      "timestamp": [
+        "Date"
+      ],
+      "description": [
+        "string"
+      ],
+      "status": [
+        "string"
+      ],
+      "fromAccount": [
+        "Account"
+      ],
+      "toAccount": [
+        "Account"
+      ],
+      "processTransaction": {
+        "=>": "boolean"
+      },
+      "validateTransaction": {
+        "=>": "boolean"
+      },
+      "getTransactionDetails": {
+        "=>": "string"
+      },
+      "account": "Account"
+    },
+    "mmg6lqse9k488div3grd": {
+      "_id": "mmg6lqse9k488div3grd",
+      "_name": "Loan",
+      "loanId": [
+        "string"
+      ],
+      "loanType": [
+        "string"
+      ],
+      "principalAmount": [
+        "number"
+      ],
+      "interestRate": [
+        "number"
+      ],
+      "termMonths": [
+        "number"
+      ],
+      "startDate": [
+        "Date"
+      ],
+      "endDate": [
+        "Date"
+      ],
+      "monthlyPayment": [
+        "number"
+      ],
+      "outstandingBalance": [
+        "number"
+      ],
+      "loanStatus": [
+        "string"
+      ],
+      "calculateMonthlyPayment": {
+        "=>": "number"
+      },
+      "makePayment": {
+        "=>": "boolean",
+        "amount": "number"
+      },
+      "getRemainingBalance": {
+        "=>": "number"
+      },
+      "refinanceLoan": {
+        "=>": "boolean",
+        "newInterestRate": "number"
+      },
+      "customer": "Customer",
+      "loanapplication": "LoanApplication"
+    },
+    "mmg6lqse9neh87ue2f1d": {
+      "_id": "mmg6lqse9neh87ue2f1d",
+      "_name": "Branch",
+      "branchId": [
+        "string"
+      ],
+      "branchName": [
+        "string"
+      ],
+      "address": [
+        "Address"
+      ],
+      "phoneNumber": [
+        "string"
+      ],
+      "manager": [
+        "Employee"
+      ],
+      "operatingHours": [
+        "string"
+      ],
+      "openBranch": {
+        "=>": "boolean"
+      },
+      "closeBranch": {
+        "=>": "boolean"
+      },
+      "addCustomer": {
+        "=>": "boolean",
+        "customer": "Customer"
+      },
+      "getBranchDetails": {
+        "=>": "string"
+      },
+      "serves": [
+        "Customer"
+      ],
+      "employs": [
+        "Employee"
+      ],
+      "employee": "Employee",
+      "located at": "Address"
+    },
+    "mmg6lqse9wbqkhtyyf8m": {
+      "_id": "mmg6lqse9wbqkhtyyf8m",
+      "_name": "Employee",
+      "employeeId": [
+        "string"
+      ],
+      "firstName": [
+        "string"
+      ],
+      "lastName": [
+        "string"
+      ],
+      "position": [
+        "string"
+      ],
+      "department": [
+        "string"
+      ],
+      "salary": [
+        "number"
+      ],
+      "hireDate": [
+        "Date"
+      ],
+      "branch": [
+        "Branch"
+      ],
+      "processTransaction": {
+        "=>": "boolean",
+        "transaction": "Transaction"
+      },
+      "approveLoan": {
+        "=>": "boolean",
+        "loanApplication": "LoanApplication"
+      },
+      "openCustomerAccount": {
+        "=>": "Account",
+        "customer": "Customer",
+        "accountType": "string"
+      },
+      "getEmployeeDetails": {
+        "=>": "string"
+      },
+      "works at": "Branch",
+      "loanapplication": "LoanApplication"
+    },
+    "mmg6lqse9tfdxbl0wtm8": {
+      "_id": "mmg6lqse9tfdxbl0wtm8",
+      "_name": "Address",
+      "street": "string",
+      "city": "string",
+      "state": "string",
+      "zipCode": "string",
+      "country": "string",
+      "validateAddress": {
+        "=>": "boolean"
+      },
+      "getFullAddress": {
+        "=>": "string"
+      },
+      "updateAddress": {
+        "=>": "boolean",
+        "newAddress": "Address"
+      },
+      "customer": "Customer",
+      "branch": "Branch"
+    },
+    "mmg6lqse9djiot4hba2u": {
+      "_id": "mmg6lqse9djiot4hba2u",
+      "_name": "LoanApplication",
+      "applicationId": [
+        "string"
+      ],
+      "customer": [
+        "Customer"
+      ],
+      "loanType": [
+        "string"
+      ],
+      "requestedAmount": [
+        "number"
+      ],
+      "applicationDate": [
+        "Date"
+      ],
+      "applicationStatus": [
+        "string"
+      ],
+      "creditScore": [
+        "number"
+      ],
+      "income": [
+        "number"
+      ],
+      "approvedBy": [
+        "Employee"
+      ],
+      "approvalDate": [
+        "Date"
+      ],
+      "submitApplication": {
+        "=>": "boolean"
+      },
+      "updateStatus": {
+        "=>": "boolean",
+        "status": "string"
+      },
+      "getApprovalStatus": {
+        "=>": "string"
+      },
+      "calculateLoanTerms": {
+        "=>": "Loan"
+      },
+      "approved by": [
+        "Employee"
+      ],
+      "results in": [
+        "Loan"
+      ]
+    }
+  },
+  "types": {},
+  "behaviors": {},
+  "components": {
+    "Customer": {},
+    "Account": {},
+    "Transaction": {},
+    "Loan": {},
+    "Branch": {},
+    "Employee": {},
+    "Address": {},
+    "LoanApplication": {}
+  }
+}

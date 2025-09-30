@@ -1,0 +1,79 @@
+{
+  "_id": "sysmg6lqse4wzkkoyzjkj9",
+  "name": "Student Management System",
+  "description": "A simple system for managing students and courses",
+  "version": "1.0.0",
+  "master": true,
+  "schemas": {
+    "smg6lqse440h0u91gwqy": {
+      "_id": "smg6lqse440h0u91gwqy",
+      "_name": "Student",
+      "_inherit": [
+        "_Component"
+      ],
+      "id": "collection",
+      "name": "collection",
+      "email": "collection",
+      "enroll": "method",
+      "enrolls in": "collection"
+    },
+    "smg6lqse4aah6fyzch8": {
+      "_id": "smg6lqse4aah6fyzch8",
+      "_name": "Course",
+      "_inherit": [
+        "_Component"
+      ],
+      "id": "collection",
+      "title": "collection",
+      "credits": "collection",
+      "addStudent": "method",
+      "student": "link"
+    }
+  },
+  "models": {
+    "mmg6lqse413q9jh45z5sg": {
+      "_id": "mmg6lqse413q9jh45z5sg",
+      "_name": "Student",
+      "id": [
+        "string"
+      ],
+      "name": [
+        "string"
+      ],
+      "email": [
+        "string"
+      ],
+      "enroll": {
+        "=>": "void",
+        "course": "Course"
+      },
+      "enrolls in": [
+        "Course"
+      ]
+    },
+    "mmg6lqse4ngawk2gbpkj": {
+      "_id": "mmg6lqse4ngawk2gbpkj",
+      "_name": "Course",
+      "id": [
+        "string"
+      ],
+      "title": [
+        "string"
+      ],
+      "credits": [
+        "number"
+      ],
+      "addStudent": {
+        "=>": "void",
+        "student": "Student"
+      },
+      "student": "Student"
+    }
+  },
+  "types": {},
+  "behaviors": {},
+  "components": {
+    "Student": {},
+    "Course": {}
+  }
+}
