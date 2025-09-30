@@ -81,6 +81,9 @@ docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md
 # Backup files
 *.backup
 
+# Git commit message files (temporary)
+.git-commit-msg*.txt
+
 # Development tool directories (local configuration, should not be committed)
 .augment/
 .serena/
