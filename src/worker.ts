@@ -766,41 +766,30 @@ export default {
 
     // Handle MCP endpoint with custom JSON-RPC handler
     if (url.pathname === '/mcp') {
-      try {
-        const requestText = await request.text();
-        const requestJson = JSON.parse(requestText);
-
-        // Create new MCP server instance for stateless Workers environment
-        const mcpServer = new SystemDesignerMCPServerCore();
-
-        // Handle JSON-RPC request
-        const response = await handleJSONRPCRequest(mcpServer, requestJson);
-
-        // Clean up server
-        mcpServer.server.close();
-
-        return new Response(JSON.stringify(response), {
-          status: 200,
-          headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-          },
-        });
-      } catch (error) {
-        console.error('Error handling MCP request:', error);
-
+      // Handle different HTTP methods
+      if (request.method === 'GET') {
+        // GET requests return server info (for health checks and discovery)
         return new Response(
           JSON.stringify({
-            jsonrpc: '2.0',
-            error: {
-              code: -32603,
-              message: 'Internal server error',
-              data: error instanceof Error ? error.message : 'Unknown error',
-            },
-            id: null,
+            name: 'System Designer MCP Server',
+            version: '1.0.0',
+            transport: 'Streamable HTTP',
+            protocol: 'JSON-RPC 2.0',
+            endpoint: '/mcp',
+            method: 'POST',
+            description: 'POST JSON-RPC requests to this endpoint for MCP communication',
+            documentation: 'https://github.com/chevyfsa/system-designer-mcp',
+            availableTools: [
+              'create_mson_model',
+              'validate_mson_model',
+              'generate_uml_diagram',
+              'export_to_system_designer',
+              'create_system_runtime_bundle',
+              'validate_system_runtime_bundle',
+            ],
           }),
           {
-            status: 500,
+            status: 200,
             headers: {
               'Content-Type': 'application/json',
               'Access-Control-Allow-Origin': '*',
@@ -808,6 +797,117 @@ export default {
           }
         );
       }
+
+      if (request.method === 'POST') {
+        try {
+          const requestText = await request.text();
+
+          // Handle empty request body
+          if (!requestText.trim()) {
+            return new Response(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                error: {
+                  code: -32600,
+                  message: 'Invalid request: empty request body. Expected JSON-RPC payload.',
+                  hint: 'Send POST requests with JSON-RPC 2.0 payload to this endpoint.',
+                },
+                id: null,
+              }),
+              {
+                status: 400,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                },
+              }
+            );
+          }
+
+          const requestJson = JSON.parse(requestText);
+
+          // Create new MCP server instance for stateless Workers environment
+          const mcpServer = new SystemDesignerMCPServerCore();
+
+          // Handle JSON-RPC request
+          const response = await handleJSONRPCRequest(mcpServer, requestJson);
+
+          // Clean up server
+          mcpServer.server.close();
+
+          return new Response(JSON.stringify(response), {
+            status: 200,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          });
+        } catch (error) {
+          console.error('Error handling MCP request:', error);
+
+          // Handle JSON parsing errors specifically
+          if (error instanceof SyntaxError && error.message.includes('JSON')) {
+            return new Response(
+              JSON.stringify({
+                jsonrpc: '2.0',
+                error: {
+                  code: -32700,
+                  message: 'Parse error: Invalid JSON in request body',
+                  hint: 'Ensure your POST request contains valid JSON-RPC 2.0 payload',
+                },
+                id: null,
+              }),
+              {
+                status: 400,
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Access-Control-Allow-Origin': '*',
+                },
+              }
+            );
+          }
+
+          return new Response(
+            JSON.stringify({
+              jsonrpc: '2.0',
+              error: {
+                code: -32603,
+                message: 'Internal server error',
+                data: error instanceof Error ? error.message : 'Unknown error',
+              },
+              id: null,
+            }),
+            {
+              status: 500,
+              headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+              },
+            }
+          );
+        }
+      }
+
+      // Handle other HTTP methods
+      return new Response(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          error: {
+            code: -32000,
+            message: `Method ${request.method} not supported. Use POST for JSON-RPC requests or GET for server info.`,
+            allowedMethods: ['GET', 'POST'],
+          },
+          id: null,
+        }),
+        {
+          status: 405,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            Allow: 'GET, POST',
+          },
+        }
+      );
     }
 
     // Handle unsupported methods for SSE endpoints (deprecated)
