@@ -1,9 +1,11 @@
 {
   "compilerOptions": {
     // Target and module settings for Bun runtime with ES modules
+    // Also supports Cloudflare Workers with WebWorker types
     "target": "ES2022",
     "module": "ES2022",
-    "lib": ["ES2022"],
+    "lib": ["ES2022", "WebWorker"],
+    "types": ["@cloudflare/workers-types"],
     "moduleResolution": "bundler",
 
     // Output configuration
