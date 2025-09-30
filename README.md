@@ -6,10 +6,10 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 
 - [API Reference](./docs/API-REFERENCE.md) - Detailed API documentation for all MCP tools
 - [System Runtime Integration Guide](./docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md) - Complete guide to System Runtime bundle creation
-- [System Runtime Analysis](./docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md) - Technical analysis and implementation details
 - [CLI Guide](./docs/CLI-GUIDE.md) - Command-line interface usage and examples
 - [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
 - [Examples](./examples/README.md) - Sample models and use cases
+- [Contributing Guide](./CONTRIBUTING.md) - How to contribute to the project
 
 ## Features
 
@@ -47,7 +47,7 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/chevyfsa/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -62,11 +62,9 @@ bun test
 
 ## Quick Start
 
-### Installation
-
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/chevyfsa/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -81,13 +79,13 @@ bun test
 
 ### Using the MCP Server
 
-1. **Start the server**:
+**Start the server**:
 
 ```bash
 bun run dev
 ```
 
-2. **Example tool usage**:
+**Example tool usage**:
 
 ```javascript
 // Create a MSON model
@@ -327,17 +325,17 @@ The server exports models in a format compatible with the System Designer macOS 
 
 ## Contributing
 
-This project follows a simple contribution model:
+We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details on:
 
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
+- Setting up the development environment
+- Running tests and code quality checks
+- Code style guidelines
+- Submitting pull requests
+- Reporting issues
 
 ## License
 
-MIT License - see LICENSE file for details.
+MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Acknowledgments
 
