@@ -512,6 +512,19 @@ async function handleJSONRPCRequest(
     let result;
 
     switch (method) {
+      case 'initialize':
+        result = {
+          protocolVersion: '2024-11-05',
+          capabilities: {
+            tools: {},
+          },
+          serverInfo: {
+            name: 'system-designer-mcp',
+            version: '1.0.0',
+          },
+        };
+        break;
+
       case 'tools/list':
         result = {
           tools: [
@@ -521,97 +534,28 @@ async function handleJSONRPCRequest(
               inputSchema: {
                 type: 'object',
                 properties: {
-                  name: { type: 'string' },
-                  description: { type: 'string' },
+                  name: { type: 'string', description: 'Name of the model' },
+                  type: {
+                    type: 'string',
+                    enum: ['class', 'component', 'deployment', 'usecase'],
+                    description: 'Type of the model',
+                  },
+                  description: {
+                    type: 'string',
+                    description: 'Optional description of the model',
+                  },
                   entities: {
                     type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        id: { type: 'string' },
-                        name: { type: 'string' },
-                        type: {
-                          type: 'string',
-                          enum: [
-                            'class',
-                            'interface',
-                            'enum',
-                            'component',
-                            'deployment',
-                            'usecase',
-                          ],
-                        },
-                        attributes: {
-                          type: 'array',
-                          items: {
-                            type: 'object',
-                            properties: {
-                              name: { type: 'string' },
-                              type: { type: 'string' },
-                              visibility: {
-                                type: 'string',
-                                enum: ['public', 'private', 'protected'],
-                              },
-                            },
-                            required: ['name', 'type'],
-                          },
-                        },
-                        methods: {
-                          type: 'array',
-                          items: {
-                            type: 'object',
-                            properties: {
-                              name: { type: 'string' },
-                              parameters: {
-                                type: 'array',
-                                items: {
-                                  type: 'object',
-                                  properties: {
-                                    name: { type: 'string' },
-                                    type: { type: 'string' },
-                                  },
-                                  required: ['name', 'type'],
-                                },
-                              },
-                              returnType: { type: 'string' },
-                              visibility: {
-                                type: 'string',
-                                enum: ['public', 'private', 'protected'],
-                              },
-                            },
-                            required: ['name'],
-                          },
-                        },
-                      },
-                      required: ['name', 'type'],
-                    },
+                    items: { type: 'object' },
+                    description: 'List of entities in the model',
                   },
                   relationships: {
                     type: 'array',
-                    items: {
-                      type: 'object',
-                      properties: {
-                        id: { type: 'string' },
-                        from: { type: 'string' },
-                        to: { type: 'string' },
-                        type: {
-                          type: 'string',
-                          enum: ['association', 'inheritance', 'implementation', 'dependency'],
-                        },
-                        multiplicity: {
-                          type: 'object',
-                          properties: {
-                            from: { type: 'string' },
-                            to: { type: 'string' },
-                          },
-                        },
-                        name: { type: 'string' },
-                      },
-                      required: ['id', 'from', 'to', 'type'],
-                    },
+                    items: { type: 'object' },
+                    description: 'List of relationships between entities',
                   },
                 },
-                required: ['name'],
+                required: ['name', 'type'],
               },
             },
             {
@@ -620,7 +564,9 @@ async function handleJSONRPCRequest(
               inputSchema: {
                 type: 'object',
                 properties: {
-                  model: { type: 'object' },
+                  model: {
+                    description: 'The MSON model to validate',
+                  },
                 },
                 required: ['model'],
               },
@@ -631,8 +577,15 @@ async function handleJSONRPCRequest(
               inputSchema: {
                 type: 'object',
                 properties: {
-                  model: { type: 'object' },
-                  format: { type: 'string', enum: ['plantuml', 'mermaid'] },
+                  model: {
+                    description: 'The MSON model to generate UML from',
+                  },
+                  format: {
+                    type: 'string',
+                    enum: ['plantuml', 'mermaid'],
+                    default: 'plantuml',
+                    description: 'The output format for the UML diagram',
+                  },
                 },
                 required: ['model'],
               },
@@ -643,30 +596,45 @@ async function handleJSONRPCRequest(
               inputSchema: {
                 type: 'object',
                 properties: {
-                  model: { type: 'object' },
+                  model: {
+                    description: 'The MSON model to export',
+                  },
+                  filePath: {
+                    type: 'string',
+                    description: 'Optional file path for the exported model',
+                  },
                 },
                 required: ['model'],
               },
             },
             {
               name: 'create_system_runtime_bundle',
-              description: 'Convert MSON models to complete System Runtime bundles',
+              description:
+                'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
               inputSchema: {
                 type: 'object',
                 properties: {
-                  model: { type: 'object' },
-                  version: { type: 'string' },
+                  model: {
+                    description: 'The MSON model to convert',
+                  },
+                  options: {
+                    type: 'object',
+                    description: 'Optional configuration options for bundle creation',
+                  },
                 },
                 required: ['model'],
               },
             },
             {
               name: 'validate_system_runtime_bundle',
-              description: 'Validate System Runtime bundles for correctness and compatibility',
+              description:
+                'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
               inputSchema: {
                 type: 'object',
                 properties: {
-                  bundle: { type: 'string' },
+                  bundle: {
+                    description: 'The System Runtime bundle to validate',
+                  },
                 },
                 required: ['bundle'],
               },
