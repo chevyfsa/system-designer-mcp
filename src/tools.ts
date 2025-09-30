@@ -20,22 +20,22 @@ import {
  */
 export interface ToolHandlers {
   handleCreateMsonModel: (
-    params: z.infer<z.ZodObject<typeof CreateMsonModelInputSchema>>
+    params: z.infer<typeof CreateMsonModelInputSchema>
   ) => Promise<{ content: Array<{ type: string; text?: string; json?: any }>; isError?: boolean }>;
   handleValidateMsonModel: (
-    params: z.infer<z.ZodObject<typeof ValidateMsonModelInputSchema>>
+    params: z.infer<typeof ValidateMsonModelInputSchema>
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
   handleGenerateUmlDiagram: (
-    params: z.infer<z.ZodObject<typeof GenerateUmlDiagramInputSchema>>
+    params: z.infer<typeof GenerateUmlDiagramInputSchema>
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
   handleExportToSystemDesigner: (
-    params: z.infer<z.ZodObject<typeof ExportToSystemDesignerInputSchema>>
+    params: z.infer<typeof ExportToSystemDesignerInputSchema>
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
   handleCreateSystemRuntimeBundle: (
-    params: z.infer<z.ZodObject<typeof CreateSystemRuntimeBundleInputSchema>>
+    params: z.infer<typeof CreateSystemRuntimeBundleInputSchema>
   ) => Promise<{ content: Array<{ type: string; text?: string; json?: any }>; isError?: boolean }>;
   handleValidateSystemRuntimeBundle: (
-    params: z.infer<z.ZodObject<typeof ValidateSystemRuntimeBundleInputSchema>>
+    params: z.infer<typeof ValidateSystemRuntimeBundleInputSchema>
   ) => Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }>;
 }
 
@@ -46,16 +46,13 @@ export interface ToolHandlers {
  */
 export function setupTools(server: McpServer, handlers: ToolHandlers): void {
   // Tool: Create MSON Model
-  // Tool: Create MSON Model
   server.registerTool(
     'create_mson_model',
     {
       title: 'Create MSON Model',
       description: 'Create and validate MSON models from structured data',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: CreateMsonModelInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleCreateMsonModel(params)
   );
 
@@ -65,10 +62,8 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Validate MSON Model',
       description: 'Validate MSON model consistency and completeness',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: ValidateMsonModelInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleValidateMsonModel(params)
   );
 
@@ -78,10 +73,8 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Generate UML Diagram',
       description: 'Generate UML diagrams in PlantUML and Mermaid formats',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: GenerateUmlDiagramInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleGenerateUmlDiagram(params)
   );
 
@@ -91,10 +84,8 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Export to System Designer',
       description: 'Export models to System Designer application format',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: ExportToSystemDesignerInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleExportToSystemDesigner(params)
   );
 
@@ -105,10 +96,8 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Create System Runtime Bundle',
       description:
         'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: CreateSystemRuntimeBundleInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleCreateSystemRuntimeBundle(params)
   );
 
@@ -119,10 +108,8 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Validate System Runtime Bundle',
       description:
         'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
-      // @ts-expect-error - SDK type constraints are too strict for complex nested schemas
       inputSchema: ValidateSystemRuntimeBundleInputSchema,
     },
-    // @ts-expect-error - Type inference from Zod schema
     async (params) => handlers.handleValidateSystemRuntimeBundle(params)
   );
 }

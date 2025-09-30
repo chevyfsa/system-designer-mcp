@@ -14,12 +14,14 @@ Both modes provide the same 6 MCP tools but with different transport mechanisms.
 **Transport Architecture Changes:**
 
 ### Previous (Deprecated SSE Transport)
+
 - **Two-endpoint design**: `/sse` + `/message` endpoints
 - **Session management**: In-memory session storage
 - **Complex connections**: Long-lived SSE connections
 - **Limited scalability**: Resource-intensive for Workers
 
 ### Current (Streamable HTTP Transport)
+
 - **Single endpoint design**: `/mcp` handles all operations
 - **Stateless operation**: Each request creates new server instance
 - **Simplified architecture**: Better suited for Workers
