@@ -563,6 +563,17 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
 // ============================================================================
 
 /**
+ * Session storage for active MCP server instances
+ * Maps session IDs to server instances and their message queues
+ */
+interface Session {
+  server: SystemDesignerMCPServerCore;
+  messageQueue: Array<{ resolve: (value: string) => void; reject: (error: Error) => void }>;
+}
+
+const sessions = new Map<string, Session>();
+
+/**
  * Main Cloudflare Workers fetch handler
  */
 export default {
@@ -584,53 +595,87 @@ export default {
       return new Response('OK', { status: 200 });
     }
 
-    // Default response
-    return new Response('System Designer MCP Server - Use /sse endpoint for MCP connection', {
-      status: 200,
-      headers: { 'Content-Type': 'text/plain' },
-    });
+    // Default response with usage instructions
+    return new Response(
+      JSON.stringify({
+        name: 'System Designer MCP Server',
+        version: '1.0.0',
+        endpoints: {
+          sse: '/sse - Server-Sent Events endpoint for MCP connection',
+          message: '/message?sessionId=<id> - POST endpoint for sending MCP messages',
+          health: '/health - Health check endpoint',
+        },
+        usage: 'Connect your MCP client to the /sse endpoint',
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   },
 };
 
 /**
  * Handle SSE connection establishment
  */
-async function handleSSEConnection(request: Request): Promise<Response> {
-  // Create a new MCP server instance
+async function handleSSEConnection(_request: Request): Promise<Response> {
+  // Generate unique session ID
+  const sessionId = crypto.randomUUID();
+
+  // Create a new MCP server instance for this session
   const mcpServer = new SystemDesignerMCPServerCore();
 
-  // Create a TransformStream for SSE
-  const { readable, writable } = new TransformStream();
-  const writer = writable.getWriter();
+  // Create session storage
+  const session: Session = {
+    server: mcpServer,
+    messageQueue: [],
+  };
+  sessions.set(sessionId, session);
+
+  // Create a ReadableStream for SSE
   const encoder = new TextEncoder();
+  let keepAliveInterval: number | undefined;
 
-  // Create SSE transport
-  // Note: We'll need to adapt this for Workers environment
-  // The SSEServerTransport from the SDK is designed for Node.js
-  // We'll create a simplified version for Workers
+  const stream = new ReadableStream({
+    async start(controller) {
+      // Send initial endpoint event to tell client where to POST messages
+      const endpointUrl = `/message?sessionId=${sessionId}`;
+      controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl}\n\n`));
 
-  // For now, return a basic SSE response
-  // Full implementation will be added in the next iteration
-  const response = new Response(readable, {
+      // Keep connection alive with periodic comments
+      keepAliveInterval = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(': keepalive\n\n'));
+        } catch {
+          if (keepAliveInterval) clearInterval(keepAliveInterval);
+        }
+      }, 30000) as unknown as number; // Every 30 seconds
+    },
+    cancel() {
+      // Clean up when client disconnects
+      if (keepAliveInterval) clearInterval(keepAliveInterval);
+      sessions.delete(sessionId);
+    },
+  });
+
+  // Clean up session after 1 hour if still active
+  setTimeout(() => {
+    if (keepAliveInterval) clearInterval(keepAliveInterval);
+    sessions.delete(sessionId);
+  }, 3600000);
+
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache, no-transform',
       Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*', // Allow CORS for testing
     },
   });
-
-  // Send initial endpoint event
-  const sessionId = crypto.randomUUID();
-  await writer.write(encoder.encode(`event: endpoint\ndata: /message?sessionId=${sessionId}\n\n`));
-
-  // Store session (simplified for now)
-  // In production, use Durable Objects or KV
-
-  return response;
 }
 
 /**
- * Handle incoming POST messages
+ * Handle incoming POST messages from MCP client
  */
 async function handleMessage(request: Request): Promise<Response> {
   try {
@@ -638,17 +683,145 @@ async function handleMessage(request: Request): Promise<Response> {
     const sessionId = url.searchParams.get('sessionId');
 
     if (!sessionId) {
-      return new Response('Missing sessionId', { status: 400 });
+      return new Response(JSON.stringify({ error: 'Missing sessionId parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
-    // Parse message body
-    const body = await request.json();
+    // Get session
+    const session = sessions.get(sessionId);
+    if (!session) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired session' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
-    // Process MCP message
-    // Full implementation will be added in the next iteration
+    // Parse MCP message
+    const message = await request.json();
 
-    return new Response('Accepted', { status: 202 });
+    // Process the MCP message
+    // Note: This is a simplified implementation
+    // In a full implementation, you'd want to properly handle the MCP protocol
+    // including request/response matching, notifications, etc.
+
+    let response;
+    try {
+      // Handle different MCP message types
+      if (message.method) {
+        // This is a request - route to appropriate tool handler
+        response = await handleMCPRequest(session.server, message);
+      } else {
+        // This might be a response or notification
+        response = { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' } };
+      }
+    } catch (error) {
+      response = {
+        jsonrpc: '2.0',
+        id: message.id,
+        error: {
+          code: -32603,
+          message: error instanceof Error ? error.message : 'Internal error',
+        },
+      };
+    }
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (error) {
-    return new Response(`Error: ${error}`, { status: 500 });
+    return new Response(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        error: {
+          code: -32700,
+          message: `Parse error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
+}
+
+/**
+ * Handle MCP request by routing to appropriate tool handler
+ */
+async function handleMCPRequest(server: SystemDesignerMCPServerCore, message: any): Promise<any> {
+  const { method, params, id } = message;
+
+  // Map MCP method names to handler methods
+  const handlers: Record<string, (args: unknown) => Promise<any>> = {
+    'tools/call': async (args: any) => {
+      const { name, arguments: toolArgs } = args;
+
+      // Route to appropriate tool handler based on tool name
+      switch (name) {
+        case 'create_mson_model':
+          return server['handleCreateMsonModel'](toolArgs);
+        case 'validate_mson_model':
+          return server['handleValidateMsonModel'](toolArgs);
+        case 'generate_uml_diagram':
+          return server['handleGenerateUmlDiagram'](toolArgs);
+        case 'export_to_system_designer':
+          return server['handleExportToSystemDesigner'](toolArgs);
+        case 'create_system_runtime_bundle':
+          return server['handleCreateSystemRuntimeBundle'](toolArgs);
+        case 'validate_system_runtime_bundle':
+          return server['handleValidateSystemRuntimeBundle'](toolArgs);
+        default:
+          throw new Error(`Unknown tool: ${name}`);
+      }
+    },
+    'tools/list': async () => {
+      return {
+        tools: [
+          {
+            name: 'create_mson_model',
+            description: 'Create and validate MSON models from structured data',
+          },
+          {
+            name: 'validate_mson_model',
+            description: 'Validate MSON model consistency and completeness',
+          },
+          {
+            name: 'generate_uml_diagram',
+            description: 'Generate UML diagrams in PlantUML and Mermaid formats',
+          },
+          {
+            name: 'export_to_system_designer',
+            description: 'Export models to System Designer application format',
+          },
+          {
+            name: 'create_system_runtime_bundle',
+            description: 'Create executable System Runtime bundle from MSON model',
+          },
+          {
+            name: 'validate_system_runtime_bundle',
+            description: 'Validate System Runtime bundle structure and completeness',
+          },
+        ],
+      };
+    },
+  };
+
+  const handler = handlers[method];
+  if (!handler) {
+    throw new Error(`Unknown method: ${method}`);
+  }
+
+  const result = await handler(params);
+
+  return {
+    jsonrpc: '2.0',
+    id,
+    result,
+  };
 }
