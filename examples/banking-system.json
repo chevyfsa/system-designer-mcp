@@ -1,4 +1,5 @@
 {
+  "id": "banking_system",
   "name": "Banking System",
   "type": "class",
   "description": "A comprehensive banking system for managing accounts, customers, transactions, and loans",
@@ -8,52 +9,140 @@
       "name": "Customer",
       "type": "class",
       "attributes": [
-        { "name": "customerId", "type": "string", "visibility": "private" },
-        { "name": "firstName", "type": "string", "visibility": "private" },
-        { "name": "lastName", "type": "string", "visibility": "private" },
-        { "name": "email", "type": "string", "visibility": "private" },
-        { "name": "phone", "type": "string", "visibility": "private" },
-        { "name": "dateOfBirth", "type": "Date", "visibility": "private" },
-        { "name": "address", "type": "Address", "visibility": "private" },
-        { "name": "creditScore", "type": "number", "visibility": "private" }
+        {
+          "name": "customerId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "firstName",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "lastName",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "email",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "phone",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "dateOfBirth",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "creditScore",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "openAccount",
-          "parameters": [{ "name": "accountType", "type": "string" }],
+          "parameters": [
+            {
+              "name": "accountType",
+              "type": "string"
+            }
+          ],
           "returnType": "Account",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "closeAccount",
-          "parameters": [{ "name": "account", "type": "Account" }],
+          "parameters": [
+            {
+              "name": "account",
+              "type": "Account"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "applyForLoan",
           "parameters": [
-            { "name": "loanAmount", "type": "number" },
-            { "name": "loanType", "type": "string" }
+            {
+              "name": "loanAmount",
+              "type": "number"
+            },
+            {
+              "name": "loanType",
+              "type": "string"
+            }
           ],
           "returnType": "LoanApplication",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getAccountBalance",
-          "parameters": [{ "name": "account", "type": "Account" }],
+          "parameters": [
+            {
+              "name": "account",
+              "type": "Account"
+            }
+          ],
           "returnType": "number",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "transferFunds",
           "parameters": [
-            { "name": "fromAccount", "type": "Account" },
-            { "name": "toAccount", "type": "Account" },
-            { "name": "amount", "type": "number" }
+            {
+              "name": "fromAccount",
+              "type": "Account"
+            },
+            {
+              "name": "toAccount",
+              "type": "Account"
+            },
+            {
+              "name": "amount",
+              "type": "number"
+            }
           ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -62,45 +151,114 @@
       "name": "Account",
       "type": "class",
       "attributes": [
-        { "name": "accountNumber", "type": "string", "visibility": "private" },
-        { "name": "accountType", "type": "string", "visibility": "private" },
-        { "name": "balance", "type": "number", "visibility": "private" },
-        { "name": "interestRate", "type": "number", "visibility": "private" },
-        { "name": "dateOpened", "type": "Date", "visibility": "private" },
-        { "name": "isActive", "type": "boolean", "visibility": "private", "isReadOnly": true },
-        { "name": "minimumBalance", "type": "number", "visibility": "private" }
+        {
+          "name": "accountNumber",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "accountType",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "balance",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "interestRate",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "dateOpened",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": true
+        },
+        {
+          "name": "minimumBalance",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "deposit",
-          "parameters": [{ "name": "amount", "type": "number" }],
+          "parameters": [
+            {
+              "name": "amount",
+              "type": "number"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "withdraw",
-          "parameters": [{ "name": "amount", "type": "number" }],
+          "parameters": [
+            {
+              "name": "amount",
+              "type": "number"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
-        { "name": "getBalance", "parameters": [], "returnType": "number", "visibility": "public" },
+        {
+          "name": "getBalance",
+          "parameters": [],
+          "returnType": "number",
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
+        },
         {
           "name": "getTransactionHistory",
           "parameters": [],
           "returnType": "Transaction[]",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "calculateInterest",
           "parameters": [],
           "returnType": "number",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "closeAccount",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -109,33 +267,87 @@
       "name": "Transaction",
       "type": "class",
       "attributes": [
-        { "name": "transactionId", "type": "string", "visibility": "private" },
-        { "name": "transactionType", "type": "string", "visibility": "private" },
-        { "name": "amount", "type": "number", "visibility": "private" },
-        { "name": "timestamp", "type": "Date", "visibility": "private" },
-        { "name": "description", "type": "string", "visibility": "private" },
-        { "name": "status", "type": "string", "visibility": "private" },
-        { "name": "fromAccount", "type": "Account", "visibility": "private" },
-        { "name": "toAccount", "type": "Account", "visibility": "private" }
+        {
+          "name": "transactionId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "transactionType",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "amount",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "timestamp",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "fromAccount",
+          "type": "Account",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "toAccount",
+          "type": "Account",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "processTransaction",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "validateTransaction",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getTransactionDetails",
           "parameters": [],
           "returnType": "string",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -144,41 +356,119 @@
       "name": "Loan",
       "type": "class",
       "attributes": [
-        { "name": "loanId", "type": "string", "visibility": "private" },
-        { "name": "loanType", "type": "string", "visibility": "private" },
-        { "name": "principalAmount", "type": "number", "visibility": "private" },
-        { "name": "interestRate", "type": "number", "visibility": "private" },
-        { "name": "termMonths", "type": "number", "visibility": "private" },
-        { "name": "startDate", "type": "Date", "visibility": "private" },
-        { "name": "endDate", "type": "Date", "visibility": "private" },
-        { "name": "monthlyPayment", "type": "number", "visibility": "private" },
-        { "name": "outstandingBalance", "type": "number", "visibility": "private" },
-        { "name": "loanStatus", "type": "string", "visibility": "private" }
+        {
+          "name": "loanId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "loanType",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "principalAmount",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "interestRate",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "termMonths",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "startDate",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "endDate",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "monthlyPayment",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "outstandingBalance",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "loanStatus",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "calculateMonthlyPayment",
           "parameters": [],
           "returnType": "number",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "makePayment",
-          "parameters": [{ "name": "amount", "type": "number" }],
+          "parameters": [
+            {
+              "name": "amount",
+              "type": "number"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getRemainingBalance",
           "parameters": [],
           "returnType": "number",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "refinanceLoan",
-          "parameters": [{ "name": "newInterestRate", "type": "number" }],
+          "parameters": [
+            {
+              "name": "newInterestRate",
+              "type": "number"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -187,32 +477,86 @@
       "name": "Branch",
       "type": "class",
       "attributes": [
-        { "name": "branchId", "type": "string", "visibility": "private" },
-        { "name": "branchName", "type": "string", "visibility": "private" },
-        { "name": "address", "type": "Address", "visibility": "private" },
-        { "name": "phoneNumber", "type": "string", "visibility": "private" },
-        { "name": "manager", "type": "Employee", "visibility": "private" },
-        { "name": "operatingHours", "type": "string", "visibility": "private" }
+        {
+          "name": "branchId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "branchName",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "address",
+          "type": "Address",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "phoneNumber",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "manager",
+          "type": "Employee",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "operatingHours",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
-        { "name": "openBranch", "parameters": [], "returnType": "boolean", "visibility": "public" },
+        {
+          "name": "openBranch",
+          "parameters": [],
+          "returnType": "boolean",
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
+        },
         {
           "name": "closeBranch",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "addCustomer",
-          "parameters": [{ "name": "customer", "type": "Customer" }],
+          "parameters": [
+            {
+              "name": "customer",
+              "type": "Customer"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getBranchDetails",
           "parameters": [],
           "returnType": "string",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -221,42 +565,114 @@
       "name": "Employee",
       "type": "class",
       "attributes": [
-        { "name": "employeeId", "type": "string", "visibility": "private" },
-        { "name": "firstName", "type": "string", "visibility": "private" },
-        { "name": "lastName", "type": "string", "visibility": "private" },
-        { "name": "position", "type": "string", "visibility": "private" },
-        { "name": "department", "type": "string", "visibility": "private" },
-        { "name": "salary", "type": "number", "visibility": "private" },
-        { "name": "hireDate", "type": "Date", "visibility": "private" },
-        { "name": "branch", "type": "Branch", "visibility": "private" }
+        {
+          "name": "employeeId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "firstName",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "lastName",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "position",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "department",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "salary",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "hireDate",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "branch",
+          "type": "Branch",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "processTransaction",
-          "parameters": [{ "name": "transaction", "type": "Transaction" }],
+          "parameters": [
+            {
+              "name": "transaction",
+              "type": "Transaction"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "approveLoan",
-          "parameters": [{ "name": "loanApplication", "type": "LoanApplication" }],
+          "parameters": [
+            {
+              "name": "loanApplication",
+              "type": "LoanApplication"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "openCustomerAccount",
           "parameters": [
-            { "name": "customer", "type": "Customer" },
-            { "name": "accountType", "type": "string" }
+            {
+              "name": "customer",
+              "type": "Customer"
+            },
+            {
+              "name": "accountType",
+              "type": "string"
+            }
           ],
           "returnType": "Account",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getEmployeeDetails",
           "parameters": [],
           "returnType": "string",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -265,30 +681,71 @@
       "name": "Address",
       "type": "class",
       "attributes": [
-        { "name": "street", "type": "string", "visibility": "private" },
-        { "name": "city", "type": "string", "visibility": "private" },
-        { "name": "state", "type": "string", "visibility": "private" },
-        { "name": "zipCode", "type": "string", "visibility": "private" },
-        { "name": "country", "type": "string", "visibility": "private" }
+        {
+          "name": "street",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "city",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "state",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "zipCode",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "country",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "validateAddress",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getFullAddress",
           "parameters": [],
           "returnType": "string",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "updateAddress",
-          "parameters": [{ "name": "newAddress", "type": "Address" }],
+          "parameters": [
+            {
+              "name": "newAddress",
+              "type": "Address"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     },
@@ -297,41 +754,114 @@
       "name": "LoanApplication",
       "type": "class",
       "attributes": [
-        { "name": "applicationId", "type": "string", "visibility": "private" },
-        { "name": "customer", "type": "Customer", "visibility": "private" },
-        { "name": "loanType", "type": "string", "visibility": "private" },
-        { "name": "requestedAmount", "type": "number", "visibility": "private" },
-        { "name": "applicationDate", "type": "Date", "visibility": "private" },
-        { "name": "applicationStatus", "type": "string", "visibility": "private" },
-        { "name": "creditScore", "type": "number", "visibility": "private" },
-        { "name": "income", "type": "number", "visibility": "private" },
-        { "name": "approvedBy", "type": "Employee", "visibility": "private" },
-        { "name": "approvalDate", "type": "Date", "visibility": "private" }
+        {
+          "name": "applicationId",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "customer",
+          "type": "Customer",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "loanType",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "requestedAmount",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "applicationDate",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "applicationStatus",
+          "type": "string",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "creditScore",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "income",
+          "type": "number",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "approvedBy",
+          "type": "Employee",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        },
+        {
+          "name": "approvalDate",
+          "type": "Date",
+          "visibility": "private",
+          "isStatic": false,
+          "isReadOnly": false
+        }
       ],
       "methods": [
         {
           "name": "submitApplication",
           "parameters": [],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "updateStatus",
-          "parameters": [{ "name": "status", "type": "string" }],
+          "parameters": [
+            {
+              "name": "status",
+              "type": "string"
+            }
+          ],
           "returnType": "boolean",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "getApprovalStatus",
           "parameters": [],
           "returnType": "string",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         },
         {
           "name": "calculateLoanTerms",
           "parameters": [],
           "returnType": "Loan",
-          "visibility": "public"
+          "visibility": "public",
+          "isStatic": false,
+          "isAbstract": false
         }
       ]
     }
@@ -342,7 +872,10 @@
       "from": "customer",
       "to": "account",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "owns"
     },
     {
@@ -350,7 +883,10 @@
       "from": "account",
       "to": "transaction",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "has"
     },
     {
@@ -358,7 +894,10 @@
       "from": "customer",
       "to": "loan",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "has"
     },
     {
@@ -366,7 +905,10 @@
       "from": "customer",
       "to": "loanApplication",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "submits"
     },
     {
@@ -374,7 +916,10 @@
       "from": "branch",
       "to": "customer",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "serves"
     },
     {
@@ -382,7 +927,10 @@
       "from": "branch",
       "to": "employee",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..*" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..*"
+      },
       "name": "employs"
     },
     {
@@ -390,7 +938,10 @@
       "from": "employee",
       "to": "branch",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "1" },
+      "multiplicity": {
+        "from": "1",
+        "to": "1"
+      },
       "name": "works at"
     },
     {
@@ -398,7 +949,10 @@
       "from": "customer",
       "to": "address",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "1" },
+      "multiplicity": {
+        "from": "1",
+        "to": "1"
+      },
       "name": "lives at"
     },
     {
@@ -406,7 +960,10 @@
       "from": "branch",
       "to": "address",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "1" },
+      "multiplicity": {
+        "from": "1",
+        "to": "1"
+      },
       "name": "located at"
     },
     {
@@ -414,7 +971,10 @@
       "from": "loanApplication",
       "to": "employee",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..1" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..1"
+      },
       "name": "approved by"
     },
     {
@@ -422,7 +982,10 @@
       "from": "loanApplication",
       "to": "loan",
       "type": "association",
-      "multiplicity": { "from": "1", "to": "0..1" },
+      "multiplicity": {
+        "from": "1",
+        "to": "0..1"
+      },
       "name": "results in"
     }
   ]
