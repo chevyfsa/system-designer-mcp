@@ -53,13 +53,29 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       description: 'Create and validate MSON models from structured data',
       inputSchema: {
         type: 'object',
-        properties: CreateMsonModelInputSchema.shape,
-        required: Object.keys(CreateMsonModelInputSchema.shape).filter(
-          (key) =>
-            !CreateMsonModelInputSchema.shape[
-              key as keyof typeof CreateMsonModelInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          name: { type: 'string', description: 'Name of the model' },
+          type: {
+            type: 'string',
+            enum: ['class', 'component', 'deployment', 'usecase'],
+            description: 'Type of the model',
+          },
+          description: {
+            type: 'string',
+            description: 'Optional description of the model',
+          },
+          entities: {
+            type: 'array',
+            items: { type: 'object' },
+            description: 'List of entities in the model',
+          },
+          relationships: {
+            type: 'array',
+            items: { type: 'object' },
+            description: 'List of relationships between entities',
+          },
+        },
+        required: ['name', 'type'],
       },
     },
     async (params) => handlers.handleCreateMsonModel(params)
@@ -73,13 +89,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       description: 'Validate MSON model consistency and completeness',
       inputSchema: {
         type: 'object',
-        properties: ValidateMsonModelInputSchema.shape,
-        required: Object.keys(ValidateMsonModelInputSchema.shape).filter(
-          (key) =>
-            !ValidateMsonModelInputSchema.shape[
-              key as keyof typeof ValidateMsonModelInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          model: {
+            description: 'The MSON model to validate',
+          },
+        },
+        required: ['model'],
       },
     },
     async (params) => handlers.handleValidateMsonModel(params)
@@ -93,13 +108,18 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       description: 'Generate UML diagrams in PlantUML and Mermaid formats',
       inputSchema: {
         type: 'object',
-        properties: GenerateUmlDiagramInputSchema.shape,
-        required: Object.keys(GenerateUmlDiagramInputSchema.shape).filter(
-          (key) =>
-            !GenerateUmlDiagramInputSchema.shape[
-              key as keyof typeof GenerateUmlDiagramInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          model: {
+            description: 'The MSON model to generate UML from',
+          },
+          format: {
+            type: 'string',
+            enum: ['plantuml', 'mermaid'],
+            default: 'plantuml',
+            description: 'The output format for the UML diagram',
+          },
+        },
+        required: ['model'],
       },
     },
     async (params) => handlers.handleGenerateUmlDiagram(params)
@@ -113,13 +133,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       description: 'Export models to System Designer application format',
       inputSchema: {
         type: 'object',
-        properties: ExportToSystemDesignerInputSchema.shape,
-        required: Object.keys(ExportToSystemDesignerInputSchema.shape).filter(
-          (key) =>
-            !ExportToSystemDesignerInputSchema.shape[
-              key as keyof typeof ExportToSystemDesignerInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          model: {
+            description: 'The MSON model to export',
+          },
+          filePath: {
+            type: 'string',
+            description: 'Optional file path for the exported model',
+          },
+        },
+        required: ['model'],
       },
     },
     async (params) => handlers.handleExportToSystemDesigner(params)
@@ -134,13 +157,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
         'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
       inputSchema: {
         type: 'object',
-        properties: CreateSystemRuntimeBundleInputSchema.shape,
-        required: Object.keys(CreateSystemRuntimeBundleInputSchema.shape).filter(
-          (key) =>
-            !CreateSystemRuntimeBundleInputSchema.shape[
-              key as keyof typeof CreateSystemRuntimeBundleInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          model: {
+            description: 'The MSON model to convert',
+          },
+          options: {
+            type: 'object',
+            description: 'Optional configuration options for bundle creation',
+          },
+        },
+        required: ['model'],
       },
     },
     async (params) => handlers.handleCreateSystemRuntimeBundle(params)
@@ -155,13 +181,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
         'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
       inputSchema: {
         type: 'object',
-        properties: ValidateSystemRuntimeBundleInputSchema.shape,
-        required: Object.keys(ValidateSystemRuntimeBundleInputSchema.shape).filter(
-          (key) =>
-            !ValidateSystemRuntimeBundleInputSchema.shape[
-              key as keyof typeof ValidateSystemRuntimeBundleInputSchema.shape
-            ].isOptional()
-        ),
+        properties: {
+          bundle: {
+            description: 'The System Runtime bundle to validate',
+          },
+        },
+        required: ['bundle'],
       },
     },
     async (params) => handlers.handleValidateSystemRuntimeBundle(params)
