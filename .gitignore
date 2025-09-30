@@ -11,12 +11,18 @@ coverage/
 *.lcov
 .nyc_output/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
 .env.development
 .env.test
 .env.production
+.dev.vars
+wrangler.toml.local
+
+# Cloudflare Workers secrets
+.wrangler/
+.mf/
 
 # Logs
 *.log
@@ -55,6 +61,9 @@ Thumbs.db
 # Test files in root directory
 test-*.ts
 direct-*.ts
+
+# Test scripts (shell scripts for testing)
+test-*.sh
 
 # Docker
 .dockerignore

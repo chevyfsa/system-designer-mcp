@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "system-designer-mcp": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://system-designer-mcp.system-designer-mcp.workers.dev/sse"
+      ]
+    }
+  }
+}
+

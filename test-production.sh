@@ -13,7 +13,7 @@ echo ""
 echo "1. Testing health endpoint..."
 HEALTH_RESPONSE=$(curl -s -w "\n%{http_code}" "$WORKER_URL/health" 2>&1)
 HTTP_CODE=$(echo "$HEALTH_RESPONSE" | tail -n 1)
-BODY=$(echo "$HEALTH_RESPONSE" | head -n -1)
+BODY=$(echo "$HEALTH_RESPONSE" | sed '$d')
 
 if [ "$HTTP_CODE" = "200" ]; then
     echo "✅ Health check passed: $BODY"

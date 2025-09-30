@@ -652,15 +652,14 @@ async function handleSSEConnection(_request: Request): Promise<Response> {
       }, 30000) as unknown as number; // Every 30 seconds
     },
     cancel() {
-      // Clean up when client disconnects
+      // Clean up keepalive interval when client disconnects
+      // But DON'T delete the session - it should persist for message handling
       if (keepAliveInterval) clearInterval(keepAliveInterval);
-      sessions.delete(sessionId);
     },
   });
 
-  // Clean up session after 1 hour if still active
+  // Clean up session after 1 hour of inactivity
   setTimeout(() => {
-    if (keepAliveInterval) clearInterval(keepAliveInterval);
     sessions.delete(sessionId);
   }, 3600000);
 
@@ -689,13 +688,17 @@ async function handleMessage(request: Request): Promise<Response> {
       });
     }
 
-    // Get session
-    const session = sessions.get(sessionId);
+    // Get or create session (stateless approach for Workers)
+    // Note: In production, use Durable Objects for persistent sessions
+    let session = sessions.get(sessionId);
     if (!session) {
-      return new Response(JSON.stringify({ error: 'Invalid or expired session' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      // Create a new session on-demand (stateless)
+      const mcpServer = new SystemDesignerMCPServerCore();
+      session = {
+        server: mcpServer,
+        messageQueue: [],
+      };
+      sessions.set(sessionId, session);
     }
 
     // Parse MCP message

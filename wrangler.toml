@@ -13,6 +13,11 @@ compatibility_date = "2025-01-30"
 [build]
 command = "bun run build:worker"
 
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
+
 # Environment variables (if needed)
 # [vars]
 # ENVIRONMENT = "production"
@@ -31,4 +36,3 @@ command = "bun run build:worker"
 # [[routes]]
 # pattern = "mcp.yourdomain.com/*"
 # zone_name = "yourdomain.com"
-
