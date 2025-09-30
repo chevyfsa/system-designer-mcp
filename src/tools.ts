@@ -51,7 +51,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Create MSON Model',
       description: 'Create and validate MSON models from structured data',
-      inputSchema: CreateMsonModelInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: CreateMsonModelInputSchema.shape,
+        required: Object.keys(CreateMsonModelInputSchema.shape).filter(
+          (key) =>
+            !CreateMsonModelInputSchema.shape[
+              key as keyof typeof CreateMsonModelInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleCreateMsonModel(params)
   );
@@ -62,7 +71,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Validate MSON Model',
       description: 'Validate MSON model consistency and completeness',
-      inputSchema: ValidateMsonModelInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: ValidateMsonModelInputSchema.shape,
+        required: Object.keys(ValidateMsonModelInputSchema.shape).filter(
+          (key) =>
+            !ValidateMsonModelInputSchema.shape[
+              key as keyof typeof ValidateMsonModelInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleValidateMsonModel(params)
   );
@@ -73,7 +91,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Generate UML Diagram',
       description: 'Generate UML diagrams in PlantUML and Mermaid formats',
-      inputSchema: GenerateUmlDiagramInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: GenerateUmlDiagramInputSchema.shape,
+        required: Object.keys(GenerateUmlDiagramInputSchema.shape).filter(
+          (key) =>
+            !GenerateUmlDiagramInputSchema.shape[
+              key as keyof typeof GenerateUmlDiagramInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleGenerateUmlDiagram(params)
   );
@@ -84,7 +111,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Export to System Designer',
       description: 'Export models to System Designer application format',
-      inputSchema: ExportToSystemDesignerInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: ExportToSystemDesignerInputSchema.shape,
+        required: Object.keys(ExportToSystemDesignerInputSchema.shape).filter(
+          (key) =>
+            !ExportToSystemDesignerInputSchema.shape[
+              key as keyof typeof ExportToSystemDesignerInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleExportToSystemDesigner(params)
   );
@@ -96,7 +132,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Create System Runtime Bundle',
       description:
         'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
-      inputSchema: CreateSystemRuntimeBundleInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: CreateSystemRuntimeBundleInputSchema.shape,
+        required: Object.keys(CreateSystemRuntimeBundleInputSchema.shape).filter(
+          (key) =>
+            !CreateSystemRuntimeBundleInputSchema.shape[
+              key as keyof typeof CreateSystemRuntimeBundleInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleCreateSystemRuntimeBundle(params)
   );
@@ -108,7 +153,16 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Validate System Runtime Bundle',
       description:
         'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
-      inputSchema: ValidateSystemRuntimeBundleInputSchema,
+      inputSchema: {
+        type: 'object',
+        properties: ValidateSystemRuntimeBundleInputSchema.shape,
+        required: Object.keys(ValidateSystemRuntimeBundleInputSchema.shape).filter(
+          (key) =>
+            !ValidateSystemRuntimeBundleInputSchema.shape[
+              key as keyof typeof ValidateSystemRuntimeBundleInputSchema.shape
+            ].isOptional()
+        ),
+      },
     },
     async (params) => handlers.handleValidateSystemRuntimeBundle(params)
   );
