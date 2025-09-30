@@ -48,8 +48,22 @@ bun run deploy
 ```
 
 After deployment, your MCP server will be available at:
-```
+
+```text
 https://system-designer-mcp.<your-subdomain>.workers.dev
+```
+
+**Production Deployment:**
+
+```text
+https://system-designer-mcp.system-designer-mcp.workers.dev
+```
+
+### 4. Test Production Deployment
+
+```bash
+# Run production tests
+./test-production.sh https://system-designer-mcp.system-designer-mcp.workers.dev
 ```
 
 ## Configuration
@@ -68,6 +82,7 @@ command = "bun run build:worker"
 ```
 
 **Key Settings:**
+
 - `name` - Worker name (will be part of your URL)
 - `main` - Entry point (built from `src/worker.ts`)
 - `compatibility_date` - Cloudflare Workers API version
@@ -104,7 +119,7 @@ The Workers deployment uses **Server-Sent Events (SSE)** for MCP communication:
 
 ### Session Flow
 
-```
+```text
 1. Client → GET /sse
 2. Server → event: endpoint\ndata: /message?sessionId=abc123
 3. Client → POST /message?sessionId=abc123 (MCP request)
@@ -127,10 +142,12 @@ All 6 MCP tools are available in Workers mode:
 ### File System Operations
 
 **Local Mode:**
+
 - Writes files to disk (e.g., `export_to_system_designer` creates `.json` files)
 - Uses `fs-extra` for file operations
 
 **Workers Mode:**
+
 - Returns JSON data directly in response
 - No file system access (Workers V8 isolate constraint)
 - All data returned via MCP protocol
@@ -138,19 +155,23 @@ All 6 MCP tools are available in Workers mode:
 ### Crypto API
 
 **Local Mode:**
+
 - Uses Node.js `crypto` module (`randomUUID`)
 
 **Workers Mode:**
+
 - Uses Web Crypto API (`crypto.randomUUID()`)
 - Standard Web API available in Workers
 
 ### Session Management
 
 **Local Mode:**
+
 - Single stdio connection per process
 - No session management needed
 
 **Workers Mode:**
+
 - Multiple concurrent sessions
 - In-memory session storage with 1-hour timeout
 - For production: Consider Durable Objects for persistence
@@ -166,6 +187,7 @@ Run the test script to verify all endpoints:
 ```
 
 Tests include:
+
 - Health check
 - Server information
 - SSE connection
@@ -195,11 +217,13 @@ curl -X POST "http://localhost:8787/message?sessionId=SESSION_ID" \
 ### Session Storage
 
 Current implementation uses in-memory Map for sessions:
+
 - ✅ Simple and fast
 - ❌ Lost on Worker restart
 - ❌ Not shared across Worker instances
 
 **For production**, consider:
+
 - **Durable Objects** - Persistent, coordinated session storage
 - **KV Storage** - Simple key-value storage for session data
 - **R2 Storage** - For larger data persistence
@@ -236,6 +260,7 @@ Consider adding rate limiting for production:
 ### Monitoring
 
 Enable Cloudflare Workers Analytics:
+
 - Request volume
 - Error rates
 - Response times
@@ -252,6 +277,7 @@ Enable Cloudflare Workers Analytics:
 
 **Symptom:** `{"error":"Invalid or expired session"}`
 **Solutions:**
+
 - Session expired (1-hour timeout)
 - Worker restarted (in-memory sessions lost)
 - Establish new SSE connection to get fresh session ID
@@ -275,7 +301,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 ## Support
 
 For issues specific to:
+
 - **Cloudflare Workers**: Check Cloudflare Workers documentation
 - **MCP Protocol**: Refer to Model Context Protocol specification
 - **This Implementation**: Open an issue in the repository
-
