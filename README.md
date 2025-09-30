@@ -6,6 +6,7 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 
 - [API Reference](./docs/API-REFERENCE.md) - Detailed API documentation for all MCP tools
 - [System Runtime Integration Guide](./docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md) - Complete guide to System Runtime bundle creation
+- [Cloudflare Deployment Guide](./CLOUDFLARE_DEPLOYMENT.md) - Deploy to Cloudflare Workers as remote MCP server
 - [CLI Guide](./docs/CLI-GUIDE.md) - Command-line interface usage and examples
 - [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
 - [Examples](./examples/README.md) - Sample models and use cases
@@ -77,13 +78,49 @@ bun run build
 bun test
 ```
 
-### Using the MCP Server
+## Deployment Options
 
-**Start the server**:
+The System Designer MCP Server can run in two modes:
+
+### Local Mode (stdio transport)
+
+**Start the local server**:
 
 ```bash
 bun run dev
 ```
+
+### Remote Mode (Cloudflare Workers)
+
+Deploy as a remote MCP server accessible over HTTP with SSE transport:
+
+```bash
+# Test locally with Wrangler
+bun run dev:worker
+
+# Deploy to Cloudflare Workers
+bunx wrangler login
+bun run deploy
+```
+
+Your MCP server will be available at:
+
+```text
+https://system-designer-mcp.<your-subdomain>.workers.dev
+```
+
+**Key Features:**
+
+- ✅ SSE (Server-Sent Events) transport for remote access
+- ✅ No authentication required (configurable)
+- ✅ All 6 MCP tools available
+- ✅ Returns JSON data directly (no file system)
+- ✅ Automatic session management
+- ✅ CORS support for web clients
+
+**See [CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md) for detailed deployment instructions.**
+
+## Usage Examples
 
 **Example tool usage**:
 
@@ -236,9 +273,12 @@ The codebase follows SOLID principles with clear separation of concerns:
 - **`src/types.ts`** - TypeScript type definitions for MSON models
 - **`src/schemas.ts`** - Zod validation schemas for all data structures
 - **`src/tools.ts`** - MCP tool registration using modern SDK patterns
-- **`src/index.ts`** - Main MCP server class with handler methods
+- **`src/index.ts`** - Local MCP server with stdio transport (Node.js/Bun)
+- **`src/worker.ts`** - Remote MCP server with SSE transport (Cloudflare Workers)
 - **`src/cli.ts`** - Command-line interface for testing and integration
 - **`src/integration/`** - System Designer app integration
+- **`src/transformers/`** - MSON to System Runtime transformation logic
+- **`src/validators/`** - System Runtime bundle validation logic
 
 ### Modern MCP SDK Patterns
 
@@ -295,10 +335,15 @@ src/
 ├── types.ts                    # TypeScript type definitions for MSON models
 ├── schemas.ts                  # Zod validation schemas for all data structures
 ├── tools.ts                    # MCP tool registration using modern SDK patterns
-├── index.ts                    # Main MCP server class with handler methods
+├── index.ts                    # Local MCP server (stdio transport)
+├── worker.ts                   # Remote MCP server (SSE transport for Workers)
 ├── cli.ts                      # Command-line interface
-└── integration/
-    └── system-designer.ts     # System Designer app integration
+├── integration/
+│   └── system-designer.ts     # System Designer app integration
+├── transformers/
+│   └── system-runtime.ts      # MSON to System Runtime transformation
+└── validators/
+    └── system-runtime.ts      # System Runtime bundle validation
 
 test/
 └── tool-based.test.ts         # Comprehensive test suite
@@ -306,13 +351,18 @@ test/
 docs/
 ├── API-REFERENCE.md           # Detailed API documentation
 ├── CLI-GUIDE.md              # CLI usage guide
-└── INTEGRATION-GUIDE.md      # Platform integration guide
+├── INTEGRATION-GUIDE.md      # Platform integration guide
+└── SYSTEM-RUNTIME-INTEGRATION-GUIDE.md  # System Runtime guide
 
 examples/
 ├── banking-system.json        # Sample banking system model
 ├── banking-system-plantuml.puml  # PlantUML output example
 ├── banking-system-mermaid.md  # Mermaid output example
 └── README.md                  # Example documentation
+
+CLOUDFLARE_DEPLOYMENT.md       # Cloudflare Workers deployment guide
+test-worker.sh                 # Automated testing script for Workers
+wrangler.toml                  # Cloudflare Workers configuration
 ```
 
 ## Integration with System Designer
