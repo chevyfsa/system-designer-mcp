@@ -1,10 +1,14 @@
 /**
  * Cloudflare Workers Entry Point for System Designer MCP Server
  *
- * This file implements the remote MCP server using SSE (Server-Sent Events) transport
+ * This file implements the remote MCP server using Streamable HTTP transport
  * for Cloudflare Workers environment. It provides the same MCP tools as the local
  * stdio version but adapted for HTTP-based communication.
  */
+
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable no-undef */
+// Cloudflare Workers global types - these are available in the Workers runtime
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { MsonModelSchema } from './schemas.js';
@@ -20,6 +24,7 @@ import { validateSystemRuntimeBundle } from './validators/system-runtime.js';
 interface Env {
   // Add any environment variables or bindings here
   // For example: KV namespaces, Durable Objects, etc.
+  [key: string]: unknown;
 }
 
 // ============================================================================
@@ -50,781 +55,800 @@ class SystemDesignerMCPServerCore {
     });
   }
 
-  getServer(): McpServer {
-    return this.server;
-  }
-
   // ============================================================================
-  // TOOL HANDLERS (adapted from src/index.ts for Workers environment)
+  // MCP TOOL HANDLERS
   // ============================================================================
 
-  /**
-   * Handler for create_mson_model tool
-   */
-  async handleCreateMsonModel(args: unknown): Promise<any> {
-    const validationResult = MsonModelSchema.safeParse(args);
-    if (!validationResult.success) {
-      return {
-        content: [{ type: 'text', text: `Validation Error: ${validationResult.error.message}` }],
-        isError: true,
-      };
+  async handleCreateMsonModel(args: unknown) {
+    const result = MsonModelSchema.safeParse(args);
+    if (!result.success) {
+      throw new Error(`Invalid MSON model: ${result.error.message}`);
     }
 
-    const model = this.ensureUniqueIds(validationResult.data);
-    const warnings = this.validateBusinessLogic(model);
+    const model = result.data;
 
-    const successMessage = `MSON Model Created Successfully:
+    // Auto-generate IDs for entities and relationships if missing
+    if (model.entities) {
+      model.entities = model.entities.map((entity, index) => ({
+        ...entity,
+        id: entity.id || `entity_${index + 1}`,
+      }));
+    }
 
-Name: ${model.name}
-Type: ${model.type}
-Description: ${model.description || 'No description'}
+    if (model.relationships) {
+      model.relationships = model.relationships.map((rel, index) => ({
+        ...rel,
+        id: rel.id || `relationship_${index + 1}`,
+      }));
+    }
 
-Entities: ${model.entities.length}
-Relationships: ${model.relationships.length}
-
-Model ID: ${model.id}
-
-${warnings.length > 0 ? `⚠️ Warnings:\n${warnings.map((w) => `- ${w.message}`).join('\n')}` : 'No warnings detected.'}
-
-You can now use this model with other tools.`;
+    // Validate the complete model
+    const validationResult = MsonModelSchema.safeParse(model);
+    if (!validationResult.success) {
+      throw new Error(`Model validation failed: ${validationResult.error.message}`);
+    }
 
     return {
       content: [
-        { type: 'text', text: successMessage },
-        { type: 'json', json: model },
+        {
+          type: 'text',
+          text: JSON.stringify(validationResult.data, null, 2),
+        },
       ],
     };
   }
 
-  /**
-   * Handler for validate_mson_model tool
-   */
-  async handleValidateMsonModel(args: unknown): Promise<any> {
-    const { model } = args as { model: unknown };
-    const validationResult = MsonModelSchema.safeParse(model);
-    if (!validationResult.success) {
+  async handleValidateMsonModel(args: unknown) {
+    const result = MsonModelSchema.safeParse(args);
+    if (!result.success) {
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Model Validation Failed:\n\nErrors: ${validationResult.error}`,
+            text: `❌ Validation failed:\n${result.error.message}`,
           },
         ],
         isError: true,
       };
     }
 
-    const validatedModel = validationResult.data;
-    const warnings = this.validateBusinessLogic(validatedModel);
+    const model = result.data;
+    const warnings: ValidationWarning[] = [];
 
-    const successMessage = `✅ Model Validation Successful!
+    // Check for orphaned relationships
+    if (model.relationships && model.entities) {
+      const entityIds = new Set(model.entities.map((e) => e.id));
 
-Model: ${validatedModel.name}
-Type: ${validatedModel.type}
-Entities: ${validatedModel.entities.length}
-Relationships: ${validatedModel.relationships.length}
+      for (const relationship of model.relationships) {
+        if (!entityIds.has(relationship.from)) {
+          warnings.push({
+            type: 'orphaned_relationship',
+            message: `Relationship "${relationship.id}" references unknown entity "${relationship.from}"`,
+            entityId: relationship.id,
+          });
+        }
 
-${warnings.length > 0 ? `⚠️ Warnings (${warnings.length}):\n${warnings.map((w) => `- ${w.message}`).join('\n')}` : 'No warnings detected.'}
+        if (!entityIds.has(relationship.to)) {
+          warnings.push({
+            type: 'orphaned_relationship',
+            message: `Relationship "${relationship.id}" references unknown entity "${relationship.to}"`,
+            entityId: relationship.id,
+          });
+        }
+      }
+    }
 
-Model is ready for UML generation and export.`;
+    const isValid = warnings.length === 0;
 
-    return { content: [{ type: 'text', text: successMessage }] };
-  }
-
-  /**
-   * Handler for generate_uml_diagram tool
-   */
-  async handleGenerateUmlDiagram(args: unknown): Promise<any> {
-    const { model, format = 'plantuml' } = args as {
-      model: unknown;
-      format?: 'plantuml' | 'mermaid';
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `${isValid ? '✅' : '⚠️'} Model validation complete\n\n${
+            warnings.length > 0
+              ? 'Warnings:\n' + warnings.map((w) => `  - ${w.message}`).join('\n')
+              : 'No issues found.'
+          }`,
+        },
+      ],
+      data: {
+        isValid,
+        warnings,
+      },
     };
-    const validationResult = MsonModelSchema.safeParse(model);
-    if (!validationResult.success) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Cannot generate UML: Invalid model format\nError: ${validationResult.error}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-
-    // Validate format
-    if (format !== 'plantuml' && format !== 'mermaid') {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Unsupported format: ${format}`,
-          },
-        ],
-        isError: true,
-      };
-    }
-
-    const validatedModel = validationResult.data;
-    const umlOutput =
-      format === 'plantuml'
-        ? this.generatePlantUML(validatedModel)
-        : this.generateMermaid(validatedModel);
-
-    const successMessage = `🎨 UML Diagram Generated (${format.toUpperCase()}):
-
-Model: ${validatedModel.name}
-Format: ${format}
-
-Copy the markup below into your preferred UML tool:
-
----
-${umlOutput}
----`;
-
-    return { content: [{ type: 'text', text: successMessage }] };
   }
 
-  /**
-   * Handler for export_to_system_designer tool
-   * NOTE: In Workers environment, this returns JSON data directly instead of writing files
-   */
-  async handleExportToSystemDesigner(args: unknown): Promise<any> {
-    const { model } = args as { model: unknown };
-    const validationResult = MsonModelSchema.safeParse(model);
-    if (!validationResult.success) {
+  async handleGenerateUmlDiagram(args: unknown) {
+    const { model, format = 'plantuml' } = args as { model: MsonModel; format?: string };
+
+    if (!model) {
+      throw new Error('Model is required for UML diagram generation');
+    }
+
+    if (format === 'plantuml') {
+      let plantuml = '@startuml\n';
+      plantuml += `title ${model.name || 'UML Diagram'}\n\n`;
+
+      // Add entities
+      if (model.entities) {
+        for (const entity of model.entities) {
+          if (entity.type === 'class') {
+            plantuml += `class "${entity.name}" as ${entity.id} {\n`;
+
+            // Add attributes
+            if (entity.attributes) {
+              for (const attr of entity.attributes) {
+                const visibility =
+                  attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
+                plantuml += `  ${visibility}${attr.name}: ${attr.type}\n`;
+              }
+            }
+
+            // Add methods
+            if (entity.methods) {
+              for (const method of entity.methods) {
+                const visibility =
+                  method.visibility === 'private'
+                    ? '-'
+                    : method.visibility === 'protected'
+                      ? '#'
+                      : '+';
+                const params =
+                  method.parameters?.map((p) => `${p.name}: ${p.type}`).join(', ') || '';
+                plantuml += `  ${visibility}${method.name}(${params}): ${method.returnType || 'void'}\n`;
+              }
+            }
+
+            plantuml += '}\n\n';
+          } else if (entity.type === 'interface') {
+            plantuml += `interface "${entity.name}" as ${entity.id} {\n`;
+
+            if (entity.methods) {
+              for (const method of entity.methods) {
+                const params =
+                  method.parameters?.map((p) => `${p.name}: ${p.type}`).join(', ') || '';
+                plantuml += `  +${method.name}(${params}): ${method.returnType || 'void'}\n`;
+              }
+            }
+
+            plantuml += '}\n\n';
+          } else if (entity.type === 'enum') {
+            plantuml += `enum "${entity.name}" as ${entity.id} {\n`;
+
+            if (entity.values) {
+              for (const value of entity.values) {
+                plantuml += `  ${value}\n`;
+              }
+            }
+
+            plantuml += '}\n\n';
+          }
+        }
+      }
+
+      // Add relationships
+      if (model.relationships) {
+        for (const rel of model.relationships) {
+          if (rel.type === 'association') {
+            const fromMultiplicity = rel.multiplicity?.from || '1';
+            const toMultiplicity = rel.multiplicity?.to || '1';
+            plantuml += `${rel.from} "${fromMultiplicity}" --> "${toMultiplicity}" ${rel.to}\n`;
+
+            if (rel.name) {
+              plantuml += `note left of ${rel.from}--${rel.to}: ${rel.name}\n`;
+            }
+          } else if (rel.type === 'inheritance') {
+            plantuml += `${rel.from} --|> ${rel.to}\n`;
+          } else if (rel.type === 'implementation') {
+            plantuml += `${rel.from} ..|> ${rel.to}\n`;
+          } else if (rel.type === 'dependency') {
+            plantuml += `${rel.from} ..> ${rel.to}\n`;
+          }
+        }
+      }
+
+      plantuml += '@enduml';
+
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Cannot export: Invalid model format\nError: ${validationResult.error}`,
+            text: plantuml,
           },
         ],
-        isError: true,
       };
+    } else if (format === 'mermaid') {
+      let mermaid = `classDiagram\n`;
+      mermaid += `    title ${model.name || 'UML Diagram'}\n\n`;
+
+      // Add entities
+      if (model.entities) {
+        for (const entity of model.entities) {
+          if (entity.type === 'class') {
+            mermaid += `    class ${entity.name} {\n`;
+
+            if (entity.attributes) {
+              for (const attr of entity.attributes) {
+                const visibility =
+                  attr.visibility === 'private' ? '-' : attr.visibility === 'protected' ? '#' : '+';
+                mermaid += `        ${visibility}${attr.name}: ${attr.type}\n`;
+              }
+            }
+
+            if (entity.methods) {
+              for (const method of entity.methods) {
+                const visibility =
+                  method.visibility === 'private'
+                    ? '-'
+                    : method.visibility === 'protected'
+                      ? '#'
+                      : '+';
+                const params =
+                  method.parameters?.map((p) => `${p.name}: ${p.type}`).join(', ') || '';
+                mermaid += `        ${visibility}${method.name}(${params}): ${method.returnType || 'void'}\n`;
+              }
+            }
+
+            mermaid += '    }\n\n';
+          } else if (entity.type === 'interface') {
+            mermaid += `    class ${entity.name} {\n`;
+            mermaid += '        <<interface>>\n';
+
+            if (entity.methods) {
+              for (const method of entity.methods) {
+                const params =
+                  method.parameters?.map((p) => `${p.name}: ${p.type}`).join(', ') || '';
+                mermaid += `        +${method.name}(${params}): ${method.returnType || 'void'}\n`;
+              }
+            }
+
+            mermaid += '    }\n\n';
+          } else if (entity.type === 'enum') {
+            mermaid += `    class ${entity.name} {\n`;
+            mermaid += '        <<enumeration>>\n';
+
+            if (entity.values) {
+              for (const value of entity.values) {
+                mermaid += `        ${value}\n`;
+              }
+            }
+
+            mermaid += '    }\n\n';
+          }
+        }
+      }
+
+      // Add relationships
+      if (model.relationships) {
+        for (const rel of model.relationships) {
+          if (rel.type === 'association') {
+            const fromEntity = model.entities?.find((e) => e.id === rel.from);
+            const toEntity = model.entities?.find((e) => e.id === rel.to);
+
+            if (fromEntity && toEntity) {
+              const fromMultiplicity = rel.multiplicity?.from || '1';
+              const toMultiplicity = rel.multiplicity?.to || '1';
+              mermaid += `    ${fromEntity.name} "${fromMultiplicity}" -- "${toMultiplicity}" ${toEntity.name}\n`;
+
+              if (rel.name) {
+                mermaid += `        ${rel.name}\n`;
+              }
+            }
+          } else if (rel.type === 'inheritance') {
+            const fromEntity = model.entities?.find((e) => e.id === rel.from);
+            const toEntity = model.entities?.find((e) => e.id === rel.to);
+
+            if (fromEntity && toEntity) {
+              mermaid += `    ${fromEntity.name} --|> ${toEntity.name}\n`;
+            }
+          } else if (rel.type === 'implementation') {
+            const fromEntity = model.entities?.find((e) => e.id === rel.from);
+            const toEntity = model.entities?.find((e) => e.id === rel.to);
+
+            if (fromEntity && toEntity) {
+              mermaid += `    ${fromEntity.name} ..|> ${toEntity.name}\n`;
+            }
+          } else if (rel.type === 'dependency') {
+            const fromEntity = model.entities?.find((e) => e.id === rel.from);
+            const toEntity = model.entities?.find((e) => e.id === rel.to);
+
+            if (fromEntity && toEntity) {
+              mermaid += `    ${fromEntity.name} ..> ${toEntity.name}\n`;
+            }
+          }
+        }
+      }
+
+      return {
+        content: [
+          {
+            type: 'text',
+            text: mermaid,
+          },
+        ],
+      };
+    } else {
+      throw new Error(`Unsupported format: ${format}. Supported formats: plantuml, mermaid`);
+    }
+  }
+
+  async handleExportToSystemDesigner(args: unknown) {
+    // In Workers environment, we can't write to the filesystem
+    // Instead, return the JSON data that can be saved by the client
+    const { model } = args as { model: MsonModel };
+
+    if (!model) {
+      throw new Error('Model is required for export');
     }
 
-    const validatedModel = validationResult.data;
-    const systemDesignerFormat = {
+    const exportData = {
+      format: 'mson',
       version: '1.0',
-      type: 'system_designer_model',
+      model: model,
       metadata: {
-        name: validatedModel.name,
-        modelType: validatedModel.type,
-        description: validatedModel.description || '',
-        createdAt: new Date().toISOString(),
+        exportedAt: new Date().toISOString(),
         exportedBy: 'system-designer-mcp',
       },
-      model: validatedModel,
     };
-
-    // In Workers environment, return JSON directly instead of writing to file
-    const successMessage = `✅ Successfully exported to System Designer format!
-
-Model: ${validatedModel.name}
-Type: ${validatedModel.type}
-Entities: ${validatedModel.entities.length}
-Relationships: ${validatedModel.relationships.length}
-
-The JSON data is included below. In a remote MCP server environment, you can copy this data
-and save it locally, or use it directly with System Designer or other compatible UML tools.`;
 
     return {
       content: [
-        { type: 'text', text: successMessage },
-        { type: 'text', text: '\n\nSystem Designer Export (JSON):' },
-        { type: 'text', text: JSON.stringify(systemDesignerFormat, null, 2) },
+        {
+          type: 'text',
+          text: JSON.stringify(exportData, null, 2),
+        },
       ],
     };
   }
 
-  /**
-   * Handler for create_system_runtime_bundle tool
-   */
-  async handleCreateSystemRuntimeBundle(args: unknown): Promise<any> {
-    const { model, version } = args as { model: unknown; version?: string };
+  async handleCreateSystemRuntimeBundle(args: unknown) {
+    const { model, version = '1.0.0' } = args as { model: MsonModel; version?: string };
 
-    // Validate MSON model
-    const validationResult = MsonModelSchema.safeParse(model);
-    if (!validationResult.success) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Invalid MSON model: ${validationResult.error.message}`,
-          },
-        ],
-        isError: true,
-      };
+    if (!model) {
+      throw new Error('Model is required for System Runtime bundle creation');
+    }
+
+    const bundle = msonToSystemRuntimeBundle(model, version);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(bundle, null, 2),
+        },
+      ],
+    };
+  }
+
+  async handleValidateSystemRuntimeBundle(args: unknown) {
+    const { bundle } = args as { bundle: string };
+
+    if (!bundle) {
+      throw new Error('Bundle is required for validation');
     }
 
     try {
-      // Transform to System Runtime bundle
-      const bundle = msonToSystemRuntimeBundle(validationResult.data, version);
+      const bundleData = JSON.parse(bundle);
+      const result = validateSystemRuntimeBundle(bundleData);
 
-      // Validate the generated bundle
-      const bundleValidation = validateSystemRuntimeBundle(bundle);
-
-      if (!bundleValidation.isValid) {
-        const errors = bundleValidation.warnings.filter((w) => w.severity === 'error');
+      if (result.isValid) {
         return {
           content: [
             {
               type: 'text',
-              text: `❌ Bundle validation failed:\n${errors.map((e) => `  - ${e.message}`).join('\n')}`,
+              text: '✅ System Runtime bundle is valid and ready for deployment.',
             },
           ],
-          isError: true,
-        };
-      }
-
-      const warnings = bundleValidation.warnings.filter((w) => w.severity === 'warning');
-      const warningText =
-        warnings.length > 0
-          ? `\n\n⚠️  Warnings:\n${warnings.map((w) => `  - ${w.message}`).join('\n')}`
-          : '';
-
-      const successMessage = `✅ System Runtime Bundle Created Successfully:
-
-Name: ${bundle.name}
-Version: ${bundle.version}
-Description: ${bundle.description}
-
-Bundle Structure:
-- Schemas: ${Object.keys(bundle.schemas).length}
-- Models: ${Object.keys(bundle.models).length}
-- Types: ${Object.keys(bundle.types).length}
-- Behaviors: ${Object.keys(bundle.behaviors).length}
-- Component Types: ${Object.keys(bundle.components).length}${warningText}`;
-
-      return {
-        content: [
-          { type: 'text', text: successMessage },
-          { type: 'text', text: '\n\nSystem Runtime Bundle (JSON):' },
-          { type: 'text', text: JSON.stringify(bundle, null, 2) },
-        ],
-      };
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Bundle creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          data: {
+            isValid: true,
+            bundle: bundleData,
           },
-        ],
-        isError: true,
-      };
-    }
-  }
-
-  /**
-   * Handler for validate_system_runtime_bundle tool
-   */
-  async handleValidateSystemRuntimeBundle(args: unknown): Promise<any> {
-    const { bundle } = args as { bundle: unknown };
-
-    try {
-      const validation = validateSystemRuntimeBundle(bundle);
-
-      const errors = validation.warnings.filter((w) => w.severity === 'error');
-      const warnings = validation.warnings.filter((w) => w.severity === 'warning');
-
-      if (!validation.isValid) {
-        const errorMessage = `❌ Bundle Validation Failed:
-
-Errors (${errors.length}):
-${errors.map((e) => `  - ${e.message}`).join('\n')}
-
-${warnings.length > 0 ? `Warnings (${warnings.length}):\n${warnings.map((w) => `  - ${w.message}`).join('\n')}` : ''}`;
-
+        };
+      } else {
         return {
-          content: [{ type: 'text', text: errorMessage }],
+          content: [
+            {
+              type: 'text',
+              text: `❌ System Runtime bundle validation failed:\n${result.errors?.join('\n') || 'Unknown error'}`,
+            },
+          ],
+          data: {
+            isValid: false,
+            errors: result.errors,
+          },
           isError: true,
         };
       }
-
-      const successMessage = `✅ System Runtime Bundle is Valid!
-
-Bundle: ${validation.bundle?.name || 'Unknown'}
-Version: ${validation.bundle?.version || 'Unknown'}
-
-${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map((w) => `  - ${w.message}`).join('\n')}` : 'No warnings detected.'}`;
-
-      return {
-        content: [{ type: 'text', text: successMessage }],
-      };
     } catch (error) {
       return {
         content: [
           {
             type: 'text',
-            text: `❌ Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            text: `❌ Invalid JSON bundle: ${error instanceof Error ? error.message : 'Unknown error'}`,
           },
         ],
         isError: true,
       };
     }
   }
+}
 
-  // ============================================================================
-  // HELPER METHODS
-  // ============================================================================
+// ============================================================================
+// JSON-RPC REQUEST HANDLER
+// ============================================================================
 
-  private ensureUniqueIds(model: MsonModel): MsonModel {
+/**
+ * Handle JSON-RPC requests for MCP protocol
+ */
+async function handleJSONRPCRequest(
+  mcpServer: SystemDesignerMCPServerCore,
+  request: any
+): Promise<any> {
+  const { jsonrpc, method, params, id } = request;
+
+  if (jsonrpc !== '2.0') {
     return {
-      ...model,
-      id: model.id || `model_${Date.now()}`,
-      entities: model.entities.map((entity) => ({
-        ...entity,
-        id: entity.id || `entity_${crypto.randomUUID()}`, // Using Web Crypto API
-      })),
-      relationships: model.relationships.map((relationship) => ({
-        ...relationship,
-        id: relationship.id || `rel_${crypto.randomUUID()}`, // Using Web Crypto API
-      })),
+      jsonrpc: '2.0',
+      error: {
+        code: -32600,
+        message: 'Invalid JSON-RPC version',
+      },
+      id,
     };
   }
 
-  private validateBusinessLogic(model: MsonModel): ValidationWarning[] {
-    const warnings: ValidationWarning[] = [];
-    const entityIds = new Set(model.entities.map((e) => e.id));
-
-    for (const relationship of model.relationships) {
-      if (!entityIds.has(relationship.from)) {
-        warnings.push({
-          message: `Relationship '${relationship.id}' references non-existent 'from' entity: ${relationship.from}`,
-          severity: 'warning',
-        });
-      }
-      if (!entityIds.has(relationship.to)) {
-        warnings.push({
-          message: `Relationship '${relationship.id}' references non-existent 'to' entity: ${relationship.to}`,
-          severity: 'warning',
-        });
-      }
-    }
-
-    const entityNames = new Set<string>();
-    for (const entity of model.entities) {
-      if (entityNames.has(entity.name)) {
-        warnings.push({
-          message: `Duplicate entity name detected: ${entity.name}`,
-          severity: 'warning',
-        });
-      }
-      entityNames.add(entity.name);
-    }
-
-    return warnings;
+  if (!method) {
+    return {
+      jsonrpc: '2.0',
+      error: {
+        code: -32600,
+        message: 'Method not specified',
+      },
+      id,
+    };
   }
 
-  private visibilityToPlantUML(visibility: string): string {
-    switch (visibility) {
-      case 'private':
-        return '-';
-      case 'protected':
-        return '#';
+  try {
+    let result;
+
+    switch (method) {
+      case 'tools/list':
+        result = {
+          tools: [
+            {
+              name: 'create_mson_model',
+              description: 'Create and validate MSON models from structured data',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  name: { type: 'string' },
+                  description: { type: 'string' },
+                  entities: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        name: { type: 'string' },
+                        type: {
+                          type: 'string',
+                          enum: [
+                            'class',
+                            'interface',
+                            'enum',
+                            'component',
+                            'deployment',
+                            'usecase',
+                          ],
+                        },
+                        attributes: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              name: { type: 'string' },
+                              type: { type: 'string' },
+                              visibility: {
+                                type: 'string',
+                                enum: ['public', 'private', 'protected'],
+                              },
+                            },
+                            required: ['name', 'type'],
+                          },
+                        },
+                        methods: {
+                          type: 'array',
+                          items: {
+                            type: 'object',
+                            properties: {
+                              name: { type: 'string' },
+                              parameters: {
+                                type: 'array',
+                                items: {
+                                  type: 'object',
+                                  properties: {
+                                    name: { type: 'string' },
+                                    type: { type: 'string' },
+                                  },
+                                  required: ['name', 'type'],
+                                },
+                              },
+                              returnType: { type: 'string' },
+                              visibility: {
+                                type: 'string',
+                                enum: ['public', 'private', 'protected'],
+                              },
+                            },
+                            required: ['name'],
+                          },
+                        },
+                      },
+                      required: ['name', 'type'],
+                    },
+                  },
+                  relationships: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        id: { type: 'string' },
+                        from: { type: 'string' },
+                        to: { type: 'string' },
+                        type: {
+                          type: 'string',
+                          enum: ['association', 'inheritance', 'implementation', 'dependency'],
+                        },
+                        multiplicity: {
+                          type: 'object',
+                          properties: {
+                            from: { type: 'string' },
+                            to: { type: 'string' },
+                          },
+                        },
+                        name: { type: 'string' },
+                      },
+                      required: ['id', 'from', 'to', 'type'],
+                    },
+                  },
+                },
+                required: ['name'],
+              },
+            },
+            {
+              name: 'validate_mson_model',
+              description: 'Validate MSON model consistency and completeness',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  model: { type: 'object' },
+                },
+                required: ['model'],
+              },
+            },
+            {
+              name: 'generate_uml_diagram',
+              description: 'Generate UML diagrams in PlantUML and Mermaid formats',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  model: { type: 'object' },
+                  format: { type: 'string', enum: ['plantuml', 'mermaid'] },
+                },
+                required: ['model'],
+              },
+            },
+            {
+              name: 'export_to_system_designer',
+              description: 'Export models to System Designer application format',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  model: { type: 'object' },
+                },
+                required: ['model'],
+              },
+            },
+            {
+              name: 'create_system_runtime_bundle',
+              description: 'Convert MSON models to complete System Runtime bundles',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  model: { type: 'object' },
+                  version: { type: 'string' },
+                },
+                required: ['model'],
+              },
+            },
+            {
+              name: 'validate_system_runtime_bundle',
+              description: 'Validate System Runtime bundles for correctness and compatibility',
+              inputSchema: {
+                type: 'object',
+                properties: {
+                  bundle: { type: 'string' },
+                },
+                required: ['bundle'],
+              },
+            },
+          ],
+        };
+        break;
+
+      case 'tools/call':
+        if (!params || !params.name) {
+          throw new Error('Tool name is required');
+        }
+
+        switch (params.name) {
+          case 'create_mson_model':
+            result = await mcpServer.handleCreateMsonModel(params.arguments);
+            break;
+          case 'validate_mson_model':
+            result = await mcpServer.handleValidateMsonModel(params.arguments);
+            break;
+          case 'generate_uml_diagram':
+            result = await mcpServer.handleGenerateUmlDiagram(params.arguments);
+            break;
+          case 'export_to_system_designer':
+            result = await mcpServer.handleExportToSystemDesigner(params.arguments);
+            break;
+          case 'create_system_runtime_bundle':
+            result = await mcpServer.handleCreateSystemRuntimeBundle(params.arguments);
+            break;
+          case 'validate_system_runtime_bundle':
+            result = await mcpServer.handleValidateSystemRuntimeBundle(params.arguments);
+            break;
+          default:
+            throw new Error(`Unknown tool: ${params.name}`);
+        }
+        break;
+
       default:
-        return '+';
-    }
-  }
-
-  private visibilityToMermaid(visibility: string): string {
-    switch (visibility) {
-      case 'private':
-        return '-';
-      case 'protected':
-        return '#';
-      default:
-        return '+';
-    }
-  }
-
-  private relationshipToPlantUML(type: string): string {
-    switch (type) {
-      case 'inheritance':
-        return '<|--';
-      case 'implementation':
-        return '<|..';
-      case 'association':
-        return '-->';
-      case 'dependency':
-        return '..>';
-      case 'aggregation':
-        return 'o-->';
-      case 'composition':
-        return '*-->';
-      default:
-        return '-->';
-    }
-  }
-
-  private relationshipToMermaid(type: string): string {
-    return this.relationshipToPlantUML(type);
-  }
-
-  private generatePlantUML(model: MsonModel): string {
-    let uml = '@startuml\n';
-    uml += `title ${model.name}\n`;
-
-    if (model.description) {
-      uml += `note top of ${model.entities[0]?.name || 'FirstEntity'}\n`;
-      uml += `${model.description}\n`;
-      uml += 'end note\n';
+        throw new Error(`Unknown method: ${method}`);
     }
 
-    for (const entity of model.entities) {
-      const entityType =
-        entity.type === 'interface' ? 'interface' : entity.type === 'enum' ? 'enum' : 'class';
-      uml += `${entityType} ${entity.name} {\n`;
-
-      for (const attr of entity.attributes) {
-        const visibility = this.visibilityToPlantUML(attr.visibility);
-        const staticStr = attr.isStatic ? '{static} ' : '';
-        const readOnlyStr = attr.isReadOnly ? '{readOnly} ' : '';
-        uml += `  ${visibility}${staticStr}${readOnlyStr}${attr.name}: ${attr.type}\n`;
-      }
-
-      for (const method of entity.methods) {
-        const visibility = this.visibilityToPlantUML(method.visibility);
-        const staticStr = method.isStatic ? '{static} ' : '';
-        const abstractStr = method.isAbstract ? '{abstract} ' : '';
-        const params = method.parameters.map((p) => `${p.name}: ${p.type}`).join(', ');
-        uml += `  ${visibility}${staticStr}${abstractStr}${method.name}(${params}): ${method.returnType}\n`;
-      }
-
-      uml += '}\n';
-    }
-
-    for (const rel of model.relationships) {
-      const relStr = this.relationshipToPlantUML(rel.type);
-      const fromMultiplicity = rel.multiplicity?.from ? `"${rel.multiplicity.from}"` : '';
-      const toMultiplicity = rel.multiplicity?.to ? `"${rel.multiplicity.to}"` : '';
-      const relName = rel.name ? `: ${rel.name}` : '';
-
-      const fromEntity = model.entities.find((e) => e.id === rel.from)?.name;
-      const toEntity = model.entities.find((e) => e.id === rel.to)?.name;
-
-      if (fromEntity && toEntity) {
-        uml += `${fromEntity} ${fromMultiplicity} ${relStr} ${toMultiplicity} ${toEntity} ${relName}\n`;
-      }
-    }
-
-    uml += '@enduml';
-    return uml;
-  }
-
-  private generateMermaid(model: MsonModel): string {
-    let mermaid = 'classDiagram\n';
-    mermaid += `title ${model.name}\n`;
-
-    for (const entity of model.entities) {
-      const classType =
-        entity.type === 'interface' ? 'interface' : entity.type === 'enum' ? 'enum' : 'class';
-      mermaid += `${classType} ${entity.name} {\n`;
-
-      for (const attr of entity.attributes) {
-        const visibility = this.visibilityToMermaid(attr.visibility);
-        const staticStr = attr.isStatic ? '*' : '';
-        const readOnlyStr = attr.isReadOnly ? '?' : '';
-        mermaid += `    ${visibility}${staticStr}${readOnlyStr}${attr.name}${attr.type ? `: ${attr.type}` : ''}\n`;
-      }
-
-      for (const method of entity.methods) {
-        const visibility = this.visibilityToMermaid(method.visibility);
-        const staticStr = method.isStatic ? '*' : '';
-        const abstractStr = method.isAbstract ? '*' : '';
-        const params = method.parameters
-          .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
-          .join(', ');
-        mermaid += `    ${visibility}${staticStr}${abstractStr}${method.name}(${params})${method.returnType ? `: ${method.returnType}` : ''}\n`;
-      }
-
-      mermaid += '}\n';
-    }
-
-    for (const rel of model.relationships) {
-      const relStr = this.relationshipToMermaid(rel.type);
-      const fromName = model.entities.find((e) => e.id === rel.from)?.name;
-      const toName = model.entities.find((e) => e.id === rel.to)?.name;
-      const relName = rel.name ? `: ${rel.name}` : '';
-
-      if (fromName && toName) {
-        mermaid += `${fromName} ${relStr} ${toName} ${relName}\n`;
-      }
-    }
-
-    return mermaid;
+    return {
+      jsonrpc: '2.0',
+      result,
+      id,
+    };
+  } catch (error) {
+    return {
+      jsonrpc: '2.0',
+      error: {
+        code: -32603,
+        message: error instanceof Error ? error.message : 'Internal error',
+      },
+      id,
+    };
   }
 }
 
 // ============================================================================
-// CLOUDFLARE WORKERS FETCH HANDLER
+// MAIN CLOUDFLARE WORKERS FETCH HANDLER
 // ============================================================================
 
 /**
- * Session storage for active MCP server instances
- * Maps session IDs to server instances and their message queues
- */
-interface Session {
-  server: SystemDesignerMCPServerCore;
-  messageQueue: Array<{ resolve: (value: string) => void; reject: (error: Error) => void }>;
-}
-
-const sessions = new Map<string, Session>();
-
-/**
- * Main Cloudflare Workers fetch handler
+ * Main Cloudflare Workers fetch handler using JSON-RPC protocol
  */
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, _env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-
-    // Handle SSE endpoint (GET request to establish SSE stream)
-    if (url.pathname === '/sse' && request.method === 'GET') {
-      return handleSSEConnection(request);
-    }
-
-    // Handle message endpoint (POST request to send messages)
-    if (url.pathname === '/message' && request.method === 'POST') {
-      return handleMessage(request);
-    }
 
     // Handle health check
     if (url.pathname === '/health') {
       return new Response('OK', { status: 200 });
     }
 
-    // Default response with usage instructions
+    // Handle root endpoint
+    if (url.pathname === '/') {
+      return new Response(
+        JSON.stringify({
+          name: 'System Designer MCP Server',
+          version: '1.0.0',
+          transport: 'Streamable HTTP',
+          endpoints: {
+            mcp: '/mcp - Streamable HTTP endpoint for MCP connection',
+            health: '/health - Health check endpoint',
+          },
+          documentation: 'https://github.com/chevyfsa/system-designer-mcp',
+        }),
+        {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // Handle MCP endpoint with custom JSON-RPC handler
+    if (url.pathname === '/mcp') {
+      try {
+        const requestText = await request.text();
+        const requestJson = JSON.parse(requestText);
+
+        // Create new MCP server instance for stateless Workers environment
+        const mcpServer = new SystemDesignerMCPServerCore();
+
+        // Handle JSON-RPC request
+        const response = await handleJSONRPCRequest(mcpServer, requestJson);
+
+        // Clean up server
+        mcpServer.server.close();
+
+        return new Response(JSON.stringify(response), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        });
+      } catch (error) {
+        console.error('Error handling MCP request:', error);
+
+        return new Response(
+          JSON.stringify({
+            jsonrpc: '2.0',
+            error: {
+              code: -32603,
+              message: 'Internal server error',
+              data: error instanceof Error ? error.message : 'Unknown error',
+            },
+            id: null,
+          }),
+          {
+            status: 500,
+            headers: {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+            },
+          }
+        );
+      }
+    }
+
+    // Handle unsupported methods for SSE endpoints (deprecated)
+    if (url.pathname === '/sse' || url.pathname === '/message') {
+      return new Response(
+        JSON.stringify({
+          jsonrpc: '2.0',
+          error: {
+            code: -32000,
+            message: 'SSE transport deprecated. Use /mcp endpoint with Streamable HTTP transport.',
+            hint: 'Update your client to use Streamable HTTP transport.',
+          },
+          id: null,
+        }),
+        {
+          status: 410,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+          },
+        }
+      );
+    }
+
+    // Default response for unknown endpoints
     return new Response(
       JSON.stringify({
-        name: 'System Designer MCP Server',
-        version: '1.0.0',
-        endpoints: {
-          sse: '/sse - Server-Sent Events endpoint for MCP connection',
-          message: '/message?sessionId=<id> - POST endpoint for sending MCP messages',
-          health: '/health - Health check endpoint',
+        jsonrpc: '2.0',
+        error: {
+          code: -32601,
+          message: 'Method not found',
         },
-        usage: 'Connect your MCP client to the /sse endpoint',
+        id: null,
       }),
       {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
+        status: 404,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+        },
       }
     );
   },
 };
-
-/**
- * Handle SSE connection establishment
- */
-async function handleSSEConnection(_request: Request): Promise<Response> {
-  // Generate unique session ID
-  const sessionId = crypto.randomUUID();
-
-  // Create a new MCP server instance for this session
-  const mcpServer = new SystemDesignerMCPServerCore();
-
-  // Create session storage
-  const session: Session = {
-    server: mcpServer,
-    messageQueue: [],
-  };
-  sessions.set(sessionId, session);
-
-  // Create a ReadableStream for SSE
-  const encoder = new TextEncoder();
-  let keepAliveInterval: number | undefined;
-
-  const stream = new ReadableStream({
-    async start(controller) {
-      // Send initial endpoint event to tell client where to POST messages
-      const endpointUrl = `/message?sessionId=${sessionId}`;
-      controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl}\n\n`));
-
-      // Keep connection alive with periodic comments
-      keepAliveInterval = setInterval(() => {
-        try {
-          controller.enqueue(encoder.encode(': keepalive\n\n'));
-        } catch {
-          if (keepAliveInterval) clearInterval(keepAliveInterval);
-        }
-      }, 30000) as unknown as number; // Every 30 seconds
-    },
-    cancel() {
-      // Clean up keepalive interval when client disconnects
-      // But DON'T delete the session - it should persist for message handling
-      if (keepAliveInterval) clearInterval(keepAliveInterval);
-    },
-  });
-
-  // Clean up session after 1 hour of inactivity
-  setTimeout(() => {
-    sessions.delete(sessionId);
-  }, 3600000);
-
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache, no-transform',
-      Connection: 'keep-alive',
-      'Access-Control-Allow-Origin': '*', // Allow CORS for testing
-    },
-  });
-}
-
-/**
- * Handle incoming POST messages from MCP client
- */
-async function handleMessage(request: Request): Promise<Response> {
-  try {
-    const url = new URL(request.url);
-    const sessionId = url.searchParams.get('sessionId');
-
-    if (!sessionId) {
-      return new Response(JSON.stringify({ error: 'Missing sessionId parameter' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Get or create session (stateless approach for Workers)
-    // Note: In production, use Durable Objects for persistent sessions
-    let session = sessions.get(sessionId);
-    if (!session) {
-      // Create a new session on-demand (stateless)
-      const mcpServer = new SystemDesignerMCPServerCore();
-      session = {
-        server: mcpServer,
-        messageQueue: [],
-      };
-      sessions.set(sessionId, session);
-    }
-
-    // Parse MCP message
-    const message = await request.json();
-
-    // Process the MCP message
-    // Note: This is a simplified implementation
-    // In a full implementation, you'd want to properly handle the MCP protocol
-    // including request/response matching, notifications, etc.
-
-    let response;
-    try {
-      // Handle different MCP message types
-      if (message.method) {
-        // This is a request - route to appropriate tool handler
-        response = await handleMCPRequest(session.server, message);
-      } else {
-        // This might be a response or notification
-        response = { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' } };
-      }
-    } catch (error) {
-      response = {
-        jsonrpc: '2.0',
-        id: message.id,
-        error: {
-          code: -32603,
-          message: error instanceof Error ? error.message : 'Internal error',
-        },
-      };
-    }
-
-    return new Response(JSON.stringify(response), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-      },
-    });
-  } catch (error) {
-    return new Response(
-      JSON.stringify({
-        jsonrpc: '2.0',
-        error: {
-          code: -32700,
-          message: `Parse error: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        },
-      }),
-      {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      }
-    );
-  }
-}
-
-/**
- * Handle MCP request by routing to appropriate tool handler
- */
-async function handleMCPRequest(server: SystemDesignerMCPServerCore, message: any): Promise<any> {
-  const { method, params, id } = message;
-
-  // Map MCP method names to handler methods
-  const handlers: Record<string, (args: unknown) => Promise<any>> = {
-    'tools/call': async (args: any) => {
-      const { name, arguments: toolArgs } = args;
-
-      // Route to appropriate tool handler based on tool name
-      switch (name) {
-        case 'create_mson_model':
-          return server['handleCreateMsonModel'](toolArgs);
-        case 'validate_mson_model':
-          return server['handleValidateMsonModel'](toolArgs);
-        case 'generate_uml_diagram':
-          return server['handleGenerateUmlDiagram'](toolArgs);
-        case 'export_to_system_designer':
-          return server['handleExportToSystemDesigner'](toolArgs);
-        case 'create_system_runtime_bundle':
-          return server['handleCreateSystemRuntimeBundle'](toolArgs);
-        case 'validate_system_runtime_bundle':
-          return server['handleValidateSystemRuntimeBundle'](toolArgs);
-        default:
-          throw new Error(`Unknown tool: ${name}`);
-      }
-    },
-    'tools/list': async () => {
-      return {
-        tools: [
-          {
-            name: 'create_mson_model',
-            description: 'Create and validate MSON models from structured data',
-          },
-          {
-            name: 'validate_mson_model',
-            description: 'Validate MSON model consistency and completeness',
-          },
-          {
-            name: 'generate_uml_diagram',
-            description: 'Generate UML diagrams in PlantUML and Mermaid formats',
-          },
-          {
-            name: 'export_to_system_designer',
-            description: 'Export models to System Designer application format',
-          },
-          {
-            name: 'create_system_runtime_bundle',
-            description: 'Create executable System Runtime bundle from MSON model',
-          },
-          {
-            name: 'validate_system_runtime_bundle',
-            description: 'Validate System Runtime bundle structure and completeness',
-          },
-        ],
-      };
-    },
-  };
-
-  const handler = handlers[method];
-  if (!handler) {
-    throw new Error(`Unknown method: ${method}`);
-  }
-
-  const result = await handler(params);
-
-  return {
-    jsonrpc: '2.0',
-    id,
-    result,
-  };
-}

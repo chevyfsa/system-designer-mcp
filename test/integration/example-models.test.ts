@@ -114,9 +114,7 @@ describe('Example Models Integration Tests', () => {
 
     // Verify models have corresponding type definitions
     for (const schema of schemasWithLinks) {
-      const correspondingModel = Object.values(bundle.models).find(
-        (m) => m._name === schema._name
-      );
+      const correspondingModel = Object.values(bundle.models).find((m) => m._name === schema._name);
       expect(correspondingModel).toBeDefined();
     }
   });
@@ -171,4 +169,3 @@ describe('Example Models Integration Tests', () => {
     expect(Object.keys(parsedBundle.models).length).toBe(Object.keys(bundle.models).length);
   });
 });
-

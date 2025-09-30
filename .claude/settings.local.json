@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__list_dir",
+      "WebSearch",
+      "mcp__MCP_DOCKER__web_search_exa",
+      "mcp__MCP_DOCKER__resolve-library-id",
+      "mcp__MCP_DOCKER__get-library-docs"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

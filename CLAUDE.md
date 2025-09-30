@@ -167,3 +167,35 @@ Models use Zod schemas with these key components:
 - Test files must include proper entity IDs to pass validation
 - ESLint is configured to ignore `dist/` and `node_modules/` directories
 - The SDK has strict type constraints for `inputSchema` - use `@ts-expect-error` for complex nested schemas
+
+## Code Quality and Maintenance
+
+### Linting and Type Safety
+- **ESLint**: Configured for TypeScript with strict rules. Use `bun run lint` to check.
+- **TypeScript**: Strict mode enabled for maximum type safety
+- **Cloudflare Workers**: Use `/* eslint-disable no-undef */` for Workers global types
+- **Unused Variables**: Prefix with underscore (`_variable`) or remove to satisfy linter
+
+### Cleanup Best Practices
+- **Script Files**: Console statements in `scripts/` are acceptable for user feedback
+- **Source Files**: Avoid debug `console.log` in production code
+- **Import Organization**: No unused imports - all dependencies are actively used
+- **Error Handling**: Comprehensive Zod validation with detailed error messages
+
+### Development Workflow
+1. **Before Changes**: Run `bun run lint` to check code quality
+2. **During Development**: Use `bun test --watch` for continuous testing
+3. **After Changes**: Run `bun run lint && bun test && bun run build` to validate
+4. **Cleanup**: Remove unused variables, fix lint errors, maintain type safety
+
+### Testing Requirements
+- All test data must include valid entity IDs
+- Tests access private methods using `@ts-expect-error` comments
+- 46 tests with 303 expect() calls covering all functionality
+- Both local MCP server and Cloudflare Workers implementations tested
+
+### Production Deployment
+- **Local Mode**: Use `bun run dev` for stdio transport development
+- **Cloudflare Workers**: Use `bun run deploy` for remote SSE transport
+- **Stateless Design**: Workers are stateless - sessions created on-demand
+- **Configuration**: Production URL in `claude-desktop-config.json`

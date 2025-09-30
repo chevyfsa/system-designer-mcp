@@ -104,6 +104,7 @@ git checkout -b fix/your-bug-fix
 ```
 
 Branch naming conventions:
+
 - `feature/` - New features
 - `fix/` - Bug fixes
 - `docs/` - Documentation updates
@@ -145,6 +146,7 @@ git commit -m "feat: add support for custom System Runtime types"
 ```
 
 Commit message format:
+
 - `feat:` - New feature
 - `fix:` - Bug fix
 - `docs:` - Documentation changes
@@ -214,11 +216,13 @@ import { describe, expect, test } from 'bun:test';
 describe('Feature Name', () => {
   test('should do something specific', () => {
     // Arrange
-    const input = { /* test data */ };
-    
+    const input = {
+      /* test data */
+    };
+
     // Act
     const result = functionUnderTest(input);
-    
+
     // Assert
     expect(result).toBeDefined();
     expect(result.property).toBe(expectedValue);
@@ -313,4 +317,3 @@ By contributing to this project, you agree that your contributions will be licen
 ---
 
 Thank you for contributing to System Designer MCP Server! 🎉
-

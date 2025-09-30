@@ -20,6 +20,7 @@ Every file in this directory was generated using the `scripts/generate-examples.
 A simple educational example demonstrating basic class relationships.
 
 **Natural Language Prompt:**
+
 > "Create a simple student management system with Student and Course entities. Students can enroll in multiple courses, and courses can have multiple students enrolled. Include appropriate attributes and methods."
 
 **Generated Files:**
@@ -42,6 +43,7 @@ A simple educational example demonstrating basic class relationships.
 A comprehensive banking system demonstrating advanced modeling capabilities.
 
 **Natural Language Prompt:**
+
 > "Create a comprehensive banking system with Customer, Account, Transaction, Loan, Branch, Employee, Address, and LoanApplication entities. Include realistic relationships showing customers owning accounts, accounts having transactions, branches employing staff, and loan application workflows. Add appropriate methods for banking operations."
 
 **Generated Files:**
@@ -254,7 +256,7 @@ const Student = runtime.require('Student');
 const student = new Student({
   id: '123',
   name: 'John Doe',
-  email: 'john@example.com'
+  email: 'john@example.com',
 });
 ```
 
@@ -345,13 +347,13 @@ Each example model can be exported to multiple formats using the MCP server tool
 
 ### Format Comparison
 
-| Format | Use Case | Editable | Visual | Runtime |
-|--------|----------|----------|--------|---------|
-| MSON JSON | Source of truth | ✅ | ❌ | ❌ |
-| PlantUML | Documentation | ❌ | ✅ | ❌ |
-| Mermaid | Web docs | ❌ | ✅ | ❌ |
-| System Designer | Visual editing | ✅ | ✅ | ❌ |
-| Runtime Bundle | Deployment | ❌ | ❌ | ✅ |
+| Format          | Use Case        | Editable | Visual | Runtime |
+| --------------- | --------------- | -------- | ------ | ------- |
+| MSON JSON       | Source of truth | ✅       | ❌     | ❌      |
+| PlantUML        | Documentation   | ❌       | ✅     | ❌      |
+| Mermaid         | Web docs        | ❌       | ✅     | ❌      |
+| System Designer | Visual editing  | ✅       | ✅     | ❌      |
+| Runtime Bundle  | Deployment      | ❌       | ❌     | ✅      |
 
 ## 💬 Natural Language Prompts
 

@@ -7,9 +7,23 @@ This guide explains how to deploy the System Designer MCP Server to Cloudflare W
 The System Designer MCP Server can run in two modes:
 
 1. **Local Mode** (`src/index.ts`) - Uses stdio transport for local CLI usage
-2. **Remote Mode** (`src/worker.ts`) - Uses SSE transport for Cloudflare Workers deployment
+2. **Remote Mode** (`src/worker.ts`) - Uses custom JSON-RPC transport for Cloudflare Workers deployment
 
 Both modes provide the same 6 MCP tools but with different transport mechanisms.
+
+**Transport Architecture Changes:**
+
+### Previous (Deprecated SSE Transport)
+- **Two-endpoint design**: `/sse` + `/message` endpoints
+- **Session management**: In-memory session storage
+- **Complex connections**: Long-lived SSE connections
+- **Limited scalability**: Resource-intensive for Workers
+
+### Current (Streamable HTTP Transport)
+- **Single endpoint design**: `/mcp` handles all operations
+- **Stateless operation**: Each request creates new server instance
+- **Simplified architecture**: Better suited for Workers
+- **Improved reliability**: Standard HTTP patterns
 
 ## Prerequisites
 
@@ -110,12 +124,12 @@ The Workers deployment uses **Server-Sent Events (SSE)** for MCP communication:
 
 ### Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | Server information and usage |
-| `/health` | GET | Health check endpoint |
-| `/sse` | GET | SSE connection for MCP client |
-| `/message?sessionId=<id>` | POST | Send MCP messages |
+| Endpoint                  | Method | Description                   |
+| ------------------------- | ------ | ----------------------------- |
+| `/`                       | GET    | Server information and usage  |
+| `/health`                 | GET    | Health check endpoint         |
+| `/sse`                    | GET    | SSE connection for MCP client |
+| `/message?sessionId=<id>` | POST   | Send MCP messages             |
 
 ### Session Flow
 

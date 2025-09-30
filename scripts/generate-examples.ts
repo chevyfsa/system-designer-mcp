@@ -32,11 +32,7 @@ const studentModelFull = JSON.parse(
 /**
  * Generate all outputs for a single example model
  */
-async function generateExampleOutputs(
-  modelName: string,
-  model: any,
-  description: string
-): Promise<void> {
+async function generateExampleOutputs(modelName: string, model: any): Promise<void> {
   console.log(`\n${'='.repeat(60)}`);
   console.log(`📝 Generating ${modelName} examples...`);
   console.log(`${'='.repeat(60)}\n`);
@@ -94,7 +90,7 @@ async function generateExampleOutputs(
   console.log('\n5️⃣  Exporting to System Designer format...');
   const exportPath = join(examplesDir, `${baseName}-export.json`);
   // @ts-expect-error - accessing private method for testing
-  const exportResult = await server.handleExportToSystemDesigner({
+  await server.handleExportToSystemDesigner({
     model: createdModel,
     filePath: exportPath,
   });
@@ -144,18 +140,10 @@ async function generateExamples() {
 
   try {
     // Generate student system examples
-    await generateExampleOutputs(
-      'Student System',
-      studentModelFull,
-      'A simple system for managing students and courses'
-    );
+    await generateExampleOutputs('Student System', studentModelFull);
 
     // Generate banking system examples
-    await generateExampleOutputs(
-      'Banking System',
-      bankingModelFull,
-      'A comprehensive banking system for managing accounts, customers, transactions, and loans'
-    );
+    await generateExampleOutputs('Banking System', bankingModelFull);
 
     console.log('\n' + '='.repeat(60));
     console.log('🎉 All examples generated successfully!');
