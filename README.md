@@ -1,30 +1,40 @@
 # System Designer MCP Server
 
-A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models. Built with a tool-based approach that empowers LLMs rather than trying to replace their natural language understanding capabilities.
+A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models and System Runtime bundles. Built with a tool-based approach that empowers LLMs to generate complete, executable System Runtime applications.
 
 ## 📚 Documentation
 
 - [API Reference](./docs/API-REFERENCE.md) - Detailed API documentation for all MCP tools
+- [System Runtime Integration Guide](./docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md) - Complete guide to System Runtime bundle creation
+- [System Runtime Analysis](./docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md) - Technical analysis and implementation details
 - [CLI Guide](./docs/CLI-GUIDE.md) - Command-line interface usage and examples
 - [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
 - [Examples](./examples/README.md) - Sample models and use cases
 
 ## Features
 
-### Core Tools
+### Core MSON Tools
 
 - **create_mson_model**: Create and validate MSON models from structured data
 - **validate_mson_model**: Validate MSON model consistency and completeness
 - **generate_uml_diagram**: Generate UML diagrams in PlantUML and Mermaid formats
 - **export_to_system_designer**: Export models to System Designer application format
 
+### System Runtime Tools
+
+- **create_system_runtime_bundle**: Convert MSON models to complete System Runtime bundles
+- **validate_system_runtime_bundle**: Validate System Runtime bundles for correctness and compatibility
+
 ### Key Capabilities
 
 - ✅ **Tool-Based Architecture**: LLMs handle understanding, server handles validation/formatting
 - ✅ **Type Safety**: Comprehensive Zod schema validation for all inputs and outputs
+- ✅ **System Runtime Integration**: Full support for System Runtime bundle generation and validation
+- ✅ **Bidirectional Relationships**: Automatic bidirectional relationship creation
+- ✅ **Multiple Inheritance**: Support for classes implementing multiple interfaces
 - ✅ **Multiple UML Formats**: Support for both PlantUML and Mermaid diagram generation
 - ✅ **System Designer Integration**: Direct export to System Designer macOS application
-- ✅ **Comprehensive Testing**: Full test coverage for all tools and functionality
+- ✅ **Comprehensive Testing**: 46 tests with 303 expect() calls covering all functionality
 
 ## Installation
 
@@ -110,6 +120,17 @@ const diagram = await mcpClient.callTool('generate_uml_diagram', {
 const exported = await mcpClient.callTool('export_to_system_designer', {
   model: model.content[1].json,
   filePath: './student_system.json',
+});
+
+// Create System Runtime bundle
+const bundle = await mcpClient.callTool('create_system_runtime_bundle', {
+  model: model.content[1].json,
+  version: '1.0.0',
+});
+
+// Validate System Runtime bundle
+const validation = await mcpClient.callTool('validate_system_runtime_bundle', {
+  bundle: bundle.content[2].text, // JSON bundle from previous step
 });
 ```
 
