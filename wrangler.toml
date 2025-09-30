@@ -1,0 +1,38 @@
+# Cloudflare Workers configuration for System Designer MCP Server
+# This configuration enables deployment of the MCP server as a remote server
+# accessible via Streamable HTTP transport (SSE)
+
+name = "system-designer-mcp"
+main = "dist/worker.js"
+compatibility_date = "2025-01-30"
+
+# Account and deployment settings
+# workers_dev = true  # Uncomment for development deployments
+
+# Build configuration
+[build]
+command = "bun run build:worker"
+
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
+
+# Environment variables (if needed)
+# [vars]
+# ENVIRONMENT = "production"
+
+# KV Namespaces (if needed for session storage in future)
+# [[kv_namespaces]]
+# binding = "MCP_SESSIONS"
+# id = "your-kv-namespace-id"
+
+# Durable Objects (if needed for stateful sessions in future)
+# [[durable_objects.bindings]]
+# name = "MCP_SESSION"
+# class_name = "MCPSession"
+
+# Routes (uncomment and configure for custom domain)
+# [[routes]]
+# pattern = "mcp.yourdomain.com/*"
+# zone_name = "yourdomain.com"

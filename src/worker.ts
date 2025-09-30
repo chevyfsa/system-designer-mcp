@@ -1,8 +1,12 @@
-import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { writeFile } from 'fs-extra';
-import { randomUUID } from 'node:crypto'; // Keep for Node.js compatibility in local version
+/**
+ * Cloudflare Workers Entry Point for System Designer MCP Server
+ *
+ * This file implements the remote MCP server using SSE (Server-Sent Events) transport
+ * for Cloudflare Workers environment. It provides the same MCP tools as the local
+ * stdio version but adapted for HTTP-based communication.
+ */
 
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { MsonModelSchema } from './schemas.js';
 import { setupTools } from './tools.js';
 import { msonToSystemRuntimeBundle } from './transformers/system-runtime.js';
@@ -10,10 +14,23 @@ import type { MsonModel, ValidationWarning } from './types.js';
 import { validateSystemRuntimeBundle } from './validators/system-runtime.js';
 
 // ============================================================================
-// MAIN SERVER CLASS
+// CLOUDFLARE WORKERS ENVIRONMENT
 // ============================================================================
 
-class SystemDesignerMCPServer {
+interface Env {
+  // Add any environment variables or bindings here
+  // For example: KV namespaces, Durable Objects, etc.
+}
+
+// ============================================================================
+// SHARED MCP SERVER CLASS (Workers-compatible)
+// ============================================================================
+
+/**
+ * Shared MCP server implementation that works in both Node.js and Workers environments.
+ * This class contains all the tool handler methods without file system dependencies.
+ */
+class SystemDesignerMCPServerCore {
   private readonly server: McpServer;
 
   constructor() {
@@ -33,8 +50,18 @@ class SystemDesignerMCPServer {
     });
   }
 
-  // Tool handler methods
-  private async handleCreateMsonModel(args: unknown): Promise<any> {
+  getServer(): McpServer {
+    return this.server;
+  }
+
+  // ============================================================================
+  // TOOL HANDLERS (adapted from src/index.ts for Workers environment)
+  // ============================================================================
+
+  /**
+   * Handler for create_mson_model tool
+   */
+  async handleCreateMsonModel(args: unknown): Promise<any> {
     const validationResult = MsonModelSchema.safeParse(args);
     if (!validationResult.success) {
       return {
@@ -69,7 +96,10 @@ You can now use this model with other tools.`;
     };
   }
 
-  private async handleValidateMsonModel(args: unknown): Promise<any> {
+  /**
+   * Handler for validate_mson_model tool
+   */
+  async handleValidateMsonModel(args: unknown): Promise<any> {
     const { model } = args as { model: unknown };
     const validationResult = MsonModelSchema.safeParse(model);
     if (!validationResult.success) {
@@ -101,7 +131,10 @@ Model is ready for UML generation and export.`;
     return { content: [{ type: 'text', text: successMessage }] };
   }
 
-  private async handleGenerateUmlDiagram(args: unknown): Promise<any> {
+  /**
+   * Handler for generate_uml_diagram tool
+   */
+  async handleGenerateUmlDiagram(args: unknown): Promise<any> {
     const { model, format = 'plantuml' } = args as {
       model: unknown;
       format?: 'plantuml' | 'mermaid';
@@ -152,8 +185,12 @@ ${umlOutput}
     return { content: [{ type: 'text', text: successMessage }] };
   }
 
-  private async handleExportToSystemDesigner(args: unknown): Promise<any> {
-    const { model, filePath } = args as { model: unknown; filePath?: string };
+  /**
+   * Handler for export_to_system_designer tool
+   * NOTE: In Workers environment, this returns JSON data directly instead of writing files
+   */
+  async handleExportToSystemDesigner(args: unknown): Promise<any> {
+    const { model } = args as { model: unknown };
     const validationResult = MsonModelSchema.safeParse(model);
     if (!validationResult.success) {
       return {
@@ -181,39 +218,30 @@ ${umlOutput}
       model: validatedModel,
     };
 
-    const fileName =
-      filePath || `${this.sanitizeFilename(validatedModel.name)}_system_designer.json`;
+    // In Workers environment, return JSON directly instead of writing to file
+    const successMessage = `✅ Successfully exported to System Designer format!
 
-    try {
-      await writeFile(fileName, JSON.stringify(systemDesignerFormat, null, 2));
-
-      const successMessage = `✅ Successfully exported to System Designer format!
-
-File: ${fileName}
 Model: ${validatedModel.name}
 Type: ${validatedModel.type}
 Entities: ${validatedModel.entities.length}
 Relationships: ${validatedModel.relationships.length}
 
-You can now import this file into System Designer or other compatible UML tools.
+The JSON data is included below. In a remote MCP server environment, you can copy this data
+and save it locally, or use it directly with System Designer or other compatible UML tools.`;
 
-File saved at: ${fileName}`;
-
-      return { content: [{ type: 'text', text: successMessage }] };
-    } catch (error) {
-      return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          },
-        ],
-        isError: true,
-      };
-    }
+    return {
+      content: [
+        { type: 'text', text: successMessage },
+        { type: 'text', text: '\n\nSystem Designer Export (JSON):' },
+        { type: 'text', text: JSON.stringify(systemDesignerFormat, null, 2) },
+      ],
+    };
   }
 
-  private async handleCreateSystemRuntimeBundle(args: unknown): Promise<any> {
+  /**
+   * Handler for create_system_runtime_bundle tool
+   */
+  async handleCreateSystemRuntimeBundle(args: unknown): Promise<any> {
     const { model, version } = args as { model: unknown; version?: string };
 
     // Validate MSON model
@@ -289,7 +317,10 @@ Bundle Structure:
     }
   }
 
-  private async handleValidateSystemRuntimeBundle(args: unknown): Promise<any> {
+  /**
+   * Handler for validate_system_runtime_bundle tool
+   */
+  async handleValidateSystemRuntimeBundle(args: unknown): Promise<any> {
     const { bundle } = args as { bundle: unknown };
 
     try {
@@ -335,17 +366,21 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
     }
   }
 
+  // ============================================================================
+  // HELPER METHODS
+  // ============================================================================
+
   private ensureUniqueIds(model: MsonModel): MsonModel {
     return {
       ...model,
       id: model.id || `model_${Date.now()}`,
       entities: model.entities.map((entity) => ({
         ...entity,
-        id: entity.id || `entity_${randomUUID()}`,
+        id: entity.id || `entity_${crypto.randomUUID()}`, // Using Web Crypto API
       })),
       relationships: model.relationships.map((relationship) => ({
         ...relationship,
-        id: relationship.id || `rel_${randomUUID()}`,
+        id: relationship.id || `rel_${crypto.randomUUID()}`, // Using Web Crypto API
       })),
     };
   }
@@ -521,29 +556,275 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
 
     return mermaid;
   }
-
-  private sanitizeFilename(name: string): string {
-    return name.replace(/[^a-zA-Z0-9]/g, '_');
-  }
-
-  async run(): Promise<void> {
-    const transport = new StdioServerTransport();
-    await this.server.connect(transport);
-    console.error('System Designer MCP Server running on stdio');
-  }
 }
 
-async function main() {
-  const mcpServer = new SystemDesignerMCPServer();
+// ============================================================================
+// CLOUDFLARE WORKERS FETCH HANDLER
+// ============================================================================
 
+/**
+ * Session storage for active MCP server instances
+ * Maps session IDs to server instances and their message queues
+ */
+interface Session {
+  server: SystemDesignerMCPServerCore;
+  messageQueue: Array<{ resolve: (value: string) => void; reject: (error: Error) => void }>;
+}
+
+const sessions = new Map<string, Session>();
+
+/**
+ * Main Cloudflare Workers fetch handler
+ */
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    const url = new URL(request.url);
+
+    // Handle SSE endpoint (GET request to establish SSE stream)
+    if (url.pathname === '/sse' && request.method === 'GET') {
+      return handleSSEConnection(request);
+    }
+
+    // Handle message endpoint (POST request to send messages)
+    if (url.pathname === '/message' && request.method === 'POST') {
+      return handleMessage(request);
+    }
+
+    // Handle health check
+    if (url.pathname === '/health') {
+      return new Response('OK', { status: 200 });
+    }
+
+    // Default response with usage instructions
+    return new Response(
+      JSON.stringify({
+        name: 'System Designer MCP Server',
+        version: '1.0.0',
+        endpoints: {
+          sse: '/sse - Server-Sent Events endpoint for MCP connection',
+          message: '/message?sessionId=<id> - POST endpoint for sending MCP messages',
+          health: '/health - Health check endpoint',
+        },
+        usage: 'Connect your MCP client to the /sse endpoint',
+      }),
+      {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
+  },
+};
+
+/**
+ * Handle SSE connection establishment
+ */
+async function handleSSEConnection(_request: Request): Promise<Response> {
+  // Generate unique session ID
+  const sessionId = crypto.randomUUID();
+
+  // Create a new MCP server instance for this session
+  const mcpServer = new SystemDesignerMCPServerCore();
+
+  // Create session storage
+  const session: Session = {
+    server: mcpServer,
+    messageQueue: [],
+  };
+  sessions.set(sessionId, session);
+
+  // Create a ReadableStream for SSE
+  const encoder = new TextEncoder();
+  let keepAliveInterval: number | undefined;
+
+  const stream = new ReadableStream({
+    async start(controller) {
+      // Send initial endpoint event to tell client where to POST messages
+      const endpointUrl = `/message?sessionId=${sessionId}`;
+      controller.enqueue(encoder.encode(`event: endpoint\ndata: ${endpointUrl}\n\n`));
+
+      // Keep connection alive with periodic comments
+      keepAliveInterval = setInterval(() => {
+        try {
+          controller.enqueue(encoder.encode(': keepalive\n\n'));
+        } catch {
+          if (keepAliveInterval) clearInterval(keepAliveInterval);
+        }
+      }, 30000) as unknown as number; // Every 30 seconds
+    },
+    cancel() {
+      // Clean up keepalive interval when client disconnects
+      // But DON'T delete the session - it should persist for message handling
+      if (keepAliveInterval) clearInterval(keepAliveInterval);
+    },
+  });
+
+  // Clean up session after 1 hour of inactivity
+  setTimeout(() => {
+    sessions.delete(sessionId);
+  }, 3600000);
+
+  return new Response(stream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+      'Access-Control-Allow-Origin': '*', // Allow CORS for testing
+    },
+  });
+}
+
+/**
+ * Handle incoming POST messages from MCP client
+ */
+async function handleMessage(request: Request): Promise<Response> {
   try {
-    await mcpServer.run();
+    const url = new URL(request.url);
+    const sessionId = url.searchParams.get('sessionId');
+
+    if (!sessionId) {
+      return new Response(JSON.stringify({ error: 'Missing sessionId parameter' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Get or create session (stateless approach for Workers)
+    // Note: In production, use Durable Objects for persistent sessions
+    let session = sessions.get(sessionId);
+    if (!session) {
+      // Create a new session on-demand (stateless)
+      const mcpServer = new SystemDesignerMCPServerCore();
+      session = {
+        server: mcpServer,
+        messageQueue: [],
+      };
+      sessions.set(sessionId, session);
+    }
+
+    // Parse MCP message
+    const message = await request.json();
+
+    // Process the MCP message
+    // Note: This is a simplified implementation
+    // In a full implementation, you'd want to properly handle the MCP protocol
+    // including request/response matching, notifications, etc.
+
+    let response;
+    try {
+      // Handle different MCP message types
+      if (message.method) {
+        // This is a request - route to appropriate tool handler
+        response = await handleMCPRequest(session.server, message);
+      } else {
+        // This might be a response or notification
+        response = { jsonrpc: '2.0', error: { code: -32600, message: 'Invalid Request' } };
+      }
+    } catch (error) {
+      response = {
+        jsonrpc: '2.0',
+        id: message.id,
+        error: {
+          code: -32603,
+          message: error instanceof Error ? error.message : 'Internal error',
+        },
+      };
+    }
+
+    return new Response(JSON.stringify(response), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+    });
   } catch (error) {
-    console.error('Failed to start MCP Server:', error);
-    process.exit(1);
+    return new Response(
+      JSON.stringify({
+        jsonrpc: '2.0',
+        error: {
+          code: -32700,
+          message: `Parse error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        },
+      }),
+      {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    );
   }
 }
 
-export { SystemDesignerMCPServer };
+/**
+ * Handle MCP request by routing to appropriate tool handler
+ */
+async function handleMCPRequest(server: SystemDesignerMCPServerCore, message: any): Promise<any> {
+  const { method, params, id } = message;
 
-main();
+  // Map MCP method names to handler methods
+  const handlers: Record<string, (args: unknown) => Promise<any>> = {
+    'tools/call': async (args: any) => {
+      const { name, arguments: toolArgs } = args;
+
+      // Route to appropriate tool handler based on tool name
+      switch (name) {
+        case 'create_mson_model':
+          return server['handleCreateMsonModel'](toolArgs);
+        case 'validate_mson_model':
+          return server['handleValidateMsonModel'](toolArgs);
+        case 'generate_uml_diagram':
+          return server['handleGenerateUmlDiagram'](toolArgs);
+        case 'export_to_system_designer':
+          return server['handleExportToSystemDesigner'](toolArgs);
+        case 'create_system_runtime_bundle':
+          return server['handleCreateSystemRuntimeBundle'](toolArgs);
+        case 'validate_system_runtime_bundle':
+          return server['handleValidateSystemRuntimeBundle'](toolArgs);
+        default:
+          throw new Error(`Unknown tool: ${name}`);
+      }
+    },
+    'tools/list': async () => {
+      return {
+        tools: [
+          {
+            name: 'create_mson_model',
+            description: 'Create and validate MSON models from structured data',
+          },
+          {
+            name: 'validate_mson_model',
+            description: 'Validate MSON model consistency and completeness',
+          },
+          {
+            name: 'generate_uml_diagram',
+            description: 'Generate UML diagrams in PlantUML and Mermaid formats',
+          },
+          {
+            name: 'export_to_system_designer',
+            description: 'Export models to System Designer application format',
+          },
+          {
+            name: 'create_system_runtime_bundle',
+            description: 'Create executable System Runtime bundle from MSON model',
+          },
+          {
+            name: 'validate_system_runtime_bundle',
+            description: 'Validate System Runtime bundle structure and completeness',
+          },
+        ],
+      };
+    },
+  };
+
+  const handler = handlers[method];
+  if (!handler) {
+    throw new Error(`Unknown method: ${method}`);
+  }
+
+  const result = await handler(params);
+
+  return {
+    jsonrpc: '2.0',
+    id,
+    result,
+  };
+}

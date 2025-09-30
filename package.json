@@ -30,8 +30,11 @@
   "scripts": {
     "dev": "bun --watch src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=node",
+    "build:worker": "bun build src/worker.ts --outdir=dist --target=browser --minify",
     "start": "bun dist/index.js",
     "start:http": "bun dist/http-server.js",
+    "dev:worker": "wrangler dev",
+    "deploy": "wrangler deploy",
     "test": "bun test",
     "test:watch": "bun test --watch",
     "lint": "bunx eslint . --ext .ts",
@@ -46,6 +49,7 @@
     "commander": "^14.0.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250927.0",
     "@types/bun": "^1.2.23",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^24.5.2",
@@ -53,6 +57,7 @@
     "@typescript-eslint/parser": "^8.44.1",
     "eslint": "^9.36.0",
     "prettier": "^3.6.2",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "wrangler": "^4.40.3"
   }
 }
