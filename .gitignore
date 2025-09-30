@@ -79,3 +79,6 @@ docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md
 
 # Backup files
 *.backup
+
+.augment/
+.zed/
