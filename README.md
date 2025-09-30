@@ -210,6 +210,26 @@ See the [Integration Guide](./docs/INTEGRATION-GUIDE.md) for detailed setup inst
 
 ## Architecture
 
+### Modular Structure
+
+The codebase follows SOLID principles with clear separation of concerns:
+
+- **`src/types.ts`** - TypeScript type definitions for MSON models
+- **`src/schemas.ts`** - Zod validation schemas for all data structures
+- **`src/tools.ts`** - MCP tool registration using modern SDK patterns
+- **`src/index.ts`** - Main MCP server class with handler methods
+- **`src/cli.ts`** - Command-line interface for testing and integration
+- **`src/integration/`** - System Designer app integration
+
+### Modern MCP SDK Patterns
+
+The server uses the modern MCP TypeScript SDK (v1.18.2) patterns:
+
+1. **`server.registerTool()`** - Modern tool registration API (not legacy `server.tool()`)
+2. **Zod Input Schemas** - Type-safe input validation with Zod schema shapes
+3. **Title Metadata** - Each tool includes a `title` field for better UX
+4. **Type Inference** - Handler methods use Zod-inferred types for parameters
+
 ### Tool-Based Approach
 
 This server uses a tool-based architecture that:
@@ -251,9 +271,12 @@ bun start
 
 ### Code Structure
 
-```
+```text
 src/
-├── index.ts                    # Main MCP server with all tools
+├── types.ts                    # TypeScript type definitions for MSON models
+├── schemas.ts                  # Zod validation schemas for all data structures
+├── tools.ts                    # MCP tool registration using modern SDK patterns
+├── index.ts                    # Main MCP server class with handler methods
 ├── cli.ts                      # Command-line interface
 └── integration/
     └── system-designer.ts     # System Designer app integration

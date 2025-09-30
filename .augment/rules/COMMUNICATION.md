@@ -1,6 +1,6 @@
 ---
-type: "agent_requested"
-description: "Rules for clear technical communication, rationale documentation, context-aware suggestions, collaboration, and error communication"
+type: 'agent_requested'
+description: 'Rules for clear technical communication, rationale documentation, context-aware suggestions, collaboration, and error communication'
 ---
 
 # COMMUNICATION.md

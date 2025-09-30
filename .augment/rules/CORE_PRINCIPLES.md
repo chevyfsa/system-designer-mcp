@@ -1,6 +1,6 @@
 ---
-type: "agent_requested"
-description: "Fundamental principles including memory-first approach, MCP tool prioritization, evidence-based reasoning, and parallel thinking"
+type: 'agent_requested'
+description: 'Fundamental principles including memory-first approach, MCP tool prioritization, evidence-based reasoning, and parallel thinking'
 ---
 
 # CORE_PRINCIPLES.md

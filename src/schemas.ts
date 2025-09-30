@@ -1,0 +1,318 @@
+/**
+ * Zod validation schemas for MSON (Model Specification Object Notation) models
+ * These schemas provide runtime validation and type inference for all MSON data structures.
+ */
+
+import { z } from 'zod';
+import type {
+  MsonAttribute,
+  MsonEntity,
+  MsonMethod,
+  MsonModel,
+  MsonMultiplicity,
+  MsonParameter,
+  MsonRelationship,
+  SystemRuntimeBehavior,
+  SystemRuntimeBundle,
+  SystemRuntimeComponent,
+  SystemRuntimeMethodSignature,
+  SystemRuntimeModel,
+  SystemRuntimeSchema,
+  SystemRuntimeType,
+} from './types.js';
+
+/**
+ * Schema for validating entity attributes (fields/properties)
+ */
+export const MsonAttributeSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
+  isStatic: z.boolean().optional().default(false),
+  isReadOnly: z.boolean().optional().default(false),
+});
+
+/**
+ * Schema for validating method parameters
+ */
+export const MsonParameterSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+});
+
+/**
+ * Schema for validating entity methods (functions)
+ */
+export const MsonMethodSchema = z.object({
+  name: z.string(),
+  parameters: z.array(MsonParameterSchema).optional().default([]),
+  returnType: z.string().optional().default('void'),
+  visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
+  isStatic: z.boolean().optional().default(false),
+  isAbstract: z.boolean().optional().default(false),
+});
+
+/**
+ * Schema for validating entities (classes, interfaces, enums, etc.)
+ */
+export const MsonEntitySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['class', 'interface', 'enum', 'component', 'actor']),
+  attributes: z.array(MsonAttributeSchema).optional().default([]),
+  methods: z.array(MsonMethodSchema).optional().default([]),
+  stereotype: z.string().optional(),
+  namespace: z.string().optional(),
+});
+
+/**
+ * Schema for validating relationship multiplicity
+ */
+export const MsonMultiplicitySchema = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+/**
+ * Schema for validating relationships between entities
+ */
+export const MsonRelationshipSchema = z.object({
+  id: z.string(),
+  from: z.string(),
+  to: z.string(),
+  type: z.enum([
+    'association',
+    'inheritance',
+    'implementation',
+    'dependency',
+    'aggregation',
+    'composition',
+  ]),
+  multiplicity: MsonMultiplicitySchema.optional(),
+  name: z.string().optional(),
+});
+
+/**
+ * Schema for validating complete MSON models
+ */
+export const MsonModelSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(['class', 'component', 'deployment', 'usecase']),
+  description: z.string().optional(),
+  entities: z.array(MsonEntitySchema),
+  relationships: z.array(MsonRelationshipSchema),
+});
+
+/**
+ * Type inference from Zod schemas
+ * These types are re-exported to ensure consistency between schemas and types
+ */
+export type MsonAttributeInferred = z.infer<typeof MsonAttributeSchema>;
+export type MsonParameterInferred = z.infer<typeof MsonParameterSchema>;
+export type MsonMethodInferred = z.infer<typeof MsonMethodSchema>;
+export type MsonEntityInferred = z.infer<typeof MsonEntitySchema>;
+export type MsonMultiplicityInferred = z.infer<typeof MsonMultiplicitySchema>;
+export type MsonRelationshipInferred = z.infer<typeof MsonRelationshipSchema>;
+export type MsonModelInferred = z.infer<typeof MsonModelSchema>;
+
+/**
+ * Verify that inferred types match the explicit types
+ * This ensures type safety between schemas and type definitions
+ * These are compile-time checks only and are intentionally unused at runtime
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertAttributeMatch = MsonAttributeInferred extends MsonAttribute ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertParameterMatch = MsonParameterInferred extends MsonParameter ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertMethodMatch = MsonMethodInferred extends MsonMethod ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertEntityMatch = MsonEntityInferred extends MsonEntity ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertMultiplicityMatch = MsonMultiplicityInferred extends MsonMultiplicity ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertRelationshipMatch = MsonRelationshipInferred extends MsonRelationship ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertModelMatch = MsonModelInferred extends MsonModel ? true : false;
+
+// ============================================================================
+// MCP TOOL INPUT SCHEMAS
+// ============================================================================
+
+/**
+ * Input schema shape for create_mson_model tool
+ * Similar to MsonModelSchema but without the 'id' field (generated by server)
+ * Exported as shape object for use with registerTool()
+ */
+export const CreateMsonModelInputSchema = {
+  name: z.string().describe('Name of the model'),
+  type: z.enum(['class', 'component', 'deployment', 'usecase']).describe('Type of the model'),
+  description: z.string().optional().describe('Optional description of the model'),
+  entities: z
+    .array(MsonEntitySchema)
+    .optional()
+    .default([])
+    .describe('List of entities in the model'),
+  relationships: z
+    .array(MsonRelationshipSchema)
+    .optional()
+    .default([])
+    .describe('List of relationships between entities'),
+};
+
+/**
+ * Input schema shape for validate_mson_model tool
+ * Accepts a complete MSON model for validation
+ */
+export const ValidateMsonModelInputSchema = {
+  model: z.unknown().describe('The MSON model to validate'),
+};
+
+/**
+ * Input schema shape for generate_uml_diagram tool
+ * Accepts a model and optional format specification
+ */
+export const GenerateUmlDiagramInputSchema = {
+  model: z.unknown().describe('The MSON model to generate UML from'),
+  format: z
+    .enum(['plantuml', 'mermaid'])
+    .optional()
+    .default('plantuml')
+    .describe('The output format for the UML diagram'),
+};
+
+/**
+ * Input schema shape for export_to_system_designer tool
+ * Accepts a model and optional file path
+ */
+export const ExportToSystemDesignerInputSchema = {
+  model: z.unknown().describe('The MSON model to export'),
+  filePath: z.string().optional().describe('Optional file path for the exported file'),
+};
+
+// ============================================================================
+// SYSTEM RUNTIME SCHEMAS
+// ============================================================================
+
+/**
+ * Schema for System Runtime method signatures
+ * Must include "=>" key for return type
+ */
+export const SystemRuntimeMethodSignatureSchema = z
+  .record(z.string(), z.string())
+  .refine((obj) => '=>' in obj, { message: 'Method signature must include "=>" for return type' });
+
+/**
+ * Schema for System Runtime schema definitions
+ * Allows additional properties beyond _id, _name, and _inherit
+ */
+export const SystemRuntimeSchemaSchema = z
+  .object({
+    _id: z.string(),
+    _name: z.string(),
+    _inherit: z.array(z.string()).optional(),
+  })
+  .passthrough(); // Allow additional properties (property/link/collection/method keys)
+
+/**
+ * Schema for System Runtime model overrides
+ * Allows additional properties beyond _id and _name
+ */
+export const SystemRuntimeModelSchema = z
+  .object({
+    _id: z.string(),
+    _name: z.string(),
+  })
+  .passthrough(); // Allow additional properties (type definitions)
+
+/**
+ * Schema for System Runtime custom types
+ */
+export const SystemRuntimeTypeSchema = z.object({
+  _id: z.string(),
+  _name: z.string(),
+  type: z.union([z.array(z.string()), z.record(z.string(), z.string())]),
+});
+
+/**
+ * Schema for System Runtime behaviors (event handlers)
+ */
+export const SystemRuntimeBehaviorSchema = z.object({
+  _id: z.string(),
+  component: z.string(),
+  state: z.string(),
+  action: z.string(),
+  useCoreAPI: z.boolean(),
+  core: z.boolean(),
+});
+
+/**
+ * Schema for System Runtime component instances
+ * Allows additional properties beyond _id
+ */
+export const SystemRuntimeComponentSchema = z
+  .object({
+    _id: z.string(),
+  })
+  .passthrough(); // Allow additional properties (component data)
+
+/**
+ * Schema for complete System Runtime bundles
+ */
+export const SystemRuntimeBundleSchema = z.object({
+  _id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  version: z.string(),
+  master: z.boolean().optional(),
+  schemas: z.record(z.string(), SystemRuntimeSchemaSchema),
+  models: z.record(z.string(), SystemRuntimeModelSchema),
+  types: z.record(z.string(), SystemRuntimeTypeSchema),
+  behaviors: z.record(z.string(), SystemRuntimeBehaviorSchema),
+  components: z.record(z.string(), z.record(z.string(), SystemRuntimeComponentSchema)),
+});
+
+/**
+ * Type inference from System Runtime Zod schemas
+ */
+export type SystemRuntimeMethodSignatureInferred = z.infer<
+  typeof SystemRuntimeMethodSignatureSchema
+>;
+export type SystemRuntimeSchemaInferred = z.infer<typeof SystemRuntimeSchemaSchema>;
+export type SystemRuntimeModelInferred = z.infer<typeof SystemRuntimeModelSchema>;
+export type SystemRuntimeTypeInferred = z.infer<typeof SystemRuntimeTypeSchema>;
+export type SystemRuntimeBehaviorInferred = z.infer<typeof SystemRuntimeBehaviorSchema>;
+export type SystemRuntimeComponentInferred = z.infer<typeof SystemRuntimeComponentSchema>;
+export type SystemRuntimeBundleInferred = z.infer<typeof SystemRuntimeBundleSchema>;
+
+/**
+ * Verify that inferred types match the explicit types
+ * These are compile-time checks only and are intentionally unused at runtime
+ */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeMethodSignatureMatch =
+  SystemRuntimeMethodSignatureInferred extends SystemRuntimeMethodSignature ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeSchemaMatch = SystemRuntimeSchemaInferred extends SystemRuntimeSchema
+  ? true
+  : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeModelMatch = SystemRuntimeModelInferred extends SystemRuntimeModel
+  ? true
+  : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeTypeMatch = SystemRuntimeTypeInferred extends SystemRuntimeType
+  ? true
+  : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeBehaviorMatch = SystemRuntimeBehaviorInferred extends SystemRuntimeBehavior
+  ? true
+  : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeComponentMatch =
+  SystemRuntimeComponentInferred extends SystemRuntimeComponent ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+type _AssertSystemRuntimeBundleMatch = SystemRuntimeBundleInferred extends SystemRuntimeBundle
+  ? true
+  : false;

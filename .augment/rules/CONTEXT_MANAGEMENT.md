@@ -1,6 +1,6 @@
 ---
-type: "always_apply"
-description: "Best practices for MCP tool prioritization, memory integration, context optimization, and resource awareness"
+type: 'always_apply'
+description: 'Best practices for MCP tool prioritization, memory integration, context optimization, and resource awareness'
 ---
 
 # CONTEXT_MANAGEMENT.md

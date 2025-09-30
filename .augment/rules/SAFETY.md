@@ -1,6 +1,6 @@
 ---
-type: "agent_requested"
-description: "Safety protocols for file system operations, git workflows, secrets management, validation gates, and error handling"
+type: 'agent_requested'
+description: 'Safety protocols for file system operations, git workflows, secrets management, validation gates, and error handling'
 ---
 
 # SAFETY.md

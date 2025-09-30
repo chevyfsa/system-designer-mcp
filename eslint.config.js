@@ -8,7 +8,7 @@ export default [
   },
   eslint.configs.recommended,
   {
-    files: ['src/**/*.ts', 'test/**/*.ts'], // Include both source and test files for TypeScript parsing
+    files: ['src/**/*.ts', 'test/**/*.ts', 'scripts/**/*.ts'], // Include source, test, and script files for TypeScript parsing
     languageOptions: {
       parser: tsparser,
       parserOptions: {

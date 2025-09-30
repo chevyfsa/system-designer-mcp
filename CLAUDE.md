@@ -54,11 +54,25 @@ bun run src/cli.ts config
 
 ## Architecture
 
-### Single-File Structure
+### Modular Structure (Post-Refactoring)
 
-- **Main Entry**: `src/index.ts` - Contains all MCP server logic, tools, and utilities
-- **No Separate Tool Files**: All tool implementations are embedded in the main file
-- **No Separate Utility Files**: All helper functions are inline
+The codebase follows SOLID principles with clear separation of concerns:
+
+- **`src/types.ts`** - TypeScript type definitions for MSON models
+- **`src/schemas.ts`** - Zod validation schemas for all data structures
+- **`src/tools.ts`** - MCP tool registration using modern SDK patterns
+- **`src/index.ts`** - Main MCP server class with tool handler methods
+- **`src/cli.ts`** - Command-line interface for testing and integration
+- **`src/integration/system-designer.ts`** - System Designer app integration
+
+### Modern MCP SDK Patterns
+
+The server uses the modern MCP TypeScript SDK (v1.18.2) patterns:
+
+1. **`server.registerTool()`** - Modern tool registration API (not legacy `server.tool()`)
+2. **Zod Input Schemas** - Type-safe input validation with Zod schema shapes
+3. **Title Metadata** - Each tool includes a `title` field for better UX
+4. **Type Inference** - Handler methods use Zod-inferred types for parameters
 
 ### Tool-Based Architecture
 
@@ -69,6 +83,8 @@ The server follows a tool-based approach where:
 3. **Server processes and exports** - Multiple output formats
 
 ### Available Tools
+
+All tools use `server.registerTool()` with Zod input schemas:
 
 - `create_mson_model` - Create and validate MSON models from structured data
 - `validate_mson_model` - Validate MSON model consistency and completeness
@@ -118,11 +134,13 @@ Models use Zod schemas with these key components:
 
 ### Code Organization
 
-- Single large file with clear section comments (schemas → tools → server)
-- Zod schemas defined at the top for type safety and reusability
-- Tool handlers as separate functions within the main file
-- Utility functions inline where used
-- CLI separated into `src/cli.ts` for testing and integration
+- **Modular structure** with clear separation of concerns following SOLID principles
+- **Type definitions** in `src/types.ts` for all MSON model interfaces
+- **Zod schemas** in `src/schemas.ts` for validation and type inference
+- **Tool registration** in `src/tools.ts` using modern `registerTool()` API
+- **Handler methods** in `src/index.ts` as part of the main server class
+- **CLI** separated into `src/cli.ts` for testing and integration
+- **Integration** module in `src/integration/` for System Designer specific functionality
 
 ### Integration Patterns
 
@@ -141,9 +159,11 @@ Models use Zod schemas with these key components:
 ## Important Notes
 
 - Always use `bun` commands instead of `npm` or `node`
-- The main server logic is entirely in `src/index.ts`
-- No separate tool files exist despite directory structure
-- Zod schemas provide comprehensive validation
+- The main server logic is in `src/index.ts` with handler methods
+- Tool registration is in `src/tools.ts` using modern `registerTool()` API
+- Zod schemas are in `src/schemas.ts` for validation and type inference
+- Type definitions are in `src/types.ts` for all MSON model interfaces
 - Tool-based approach means LLM creates structured data, server validates/exports
 - Test files must include proper entity IDs to pass validation
 - ESLint is configured to ignore `dist/` and `node_modules/` directories
+- The SDK has strict type constraints for `inputSchema` - use `@ts-expect-error` for complex nested schemas

@@ -1,6 +1,6 @@
 ---
-type: "agent_requested"
-description: "Guidelines for system architecture, API design, dependency injection, performance optimization, and security architecture patterns"
+type: 'agent_requested'
+description: 'Guidelines for system architecture, API design, dependency injection, performance optimization, and security architecture patterns'
 ---
 
 # ARCHITECTURE.md

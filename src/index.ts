@@ -1,89 +1,11 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { SystemDesignerIntegration } from './integration/system-designer.js';
-import { z } from 'zod';
 import { writeFile } from 'fs-extra';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
-// ============================================================================
-// SCHEMA DEFINITIONS
-// ============================================================================
-
-const MsonAttributeSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
-  isStatic: z.boolean().optional().default(false),
-  isReadOnly: z.boolean().optional().default(false),
-});
-
-const MsonParameterSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-});
-
-const MsonMethodSchema = z.object({
-  name: z.string(),
-  parameters: z.array(MsonParameterSchema).optional().default([]),
-  returnType: z.string().optional().default('void'),
-  visibility: z.enum(['public', 'private', 'protected']).optional().default('public'),
-  isStatic: z.boolean().optional().default(false),
-  isAbstract: z.boolean().optional().default(false),
-});
-
-const MsonEntitySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: z.enum(['class', 'interface', 'enum', 'component', 'actor']),
-  attributes: z.array(MsonAttributeSchema).optional().default([]),
-  methods: z.array(MsonMethodSchema).optional().default([]),
-  stereotype: z.string().optional(),
-  namespace: z.string().optional(),
-});
-
-const MsonMultiplicitySchema = z.object({
-  from: z.string().optional(),
-  to: z.string().optional(),
-});
-
-const MsonRelationshipSchema = z.object({
-  id: z.string(),
-  from: z.string(),
-  to: z.string(),
-  type: z.enum([
-    'association',
-    'inheritance',
-    'implementation',
-    'dependency',
-    'aggregation',
-    'composition',
-  ]),
-  multiplicity: MsonMultiplicitySchema.optional(),
-  name: z.string().optional(),
-});
-
-const MsonModelSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  type: z.enum(['class', 'component', 'deployment', 'usecase']),
-  description: z.string().optional(),
-  entities: z.array(MsonEntitySchema),
-  relationships: z.array(MsonRelationshipSchema),
-});
-
-// Type exports
-export type MsonAttribute = z.infer<typeof MsonAttributeSchema>;
-export type MsonParameter = z.infer<typeof MsonParameterSchema>;
-export type MsonMethod = z.infer<typeof MsonMethodSchema>;
-export type MsonEntity = z.infer<typeof MsonEntitySchema>;
-export type MsonMultiplicity = z.infer<typeof MsonMultiplicitySchema>;
-export type MsonRelationship = z.infer<typeof MsonRelationshipSchema>;
-export type MsonModel = z.infer<typeof MsonModelSchema>;
-
-interface ValidationWarning {
-  message: string;
-  severity: 'warning' | 'error';
-}
+import { MsonModelSchema } from './schemas.js';
+import { setupTools } from './tools.js';
+import type { MsonModel, ValidationWarning } from './types.js';
 
 // ============================================================================
 // MAIN SERVER CLASS
@@ -91,7 +13,6 @@ interface ValidationWarning {
 
 class SystemDesignerMCPServer {
   private readonly server: McpServer;
-  private readonly systemDesigner: SystemDesignerIntegration;
 
   constructor() {
     this.server = new McpServer({
@@ -99,12 +20,17 @@ class SystemDesignerMCPServer {
       version: '1.0.0',
     });
 
-    this.systemDesigner = new SystemDesignerIntegration();
-    this.setupTools();
+    // Register all MCP tools
+    setupTools(this.server, {
+      handleCreateMsonModel: this.handleCreateMsonModel.bind(this),
+      handleValidateMsonModel: this.handleValidateMsonModel.bind(this),
+      handleGenerateUmlDiagram: this.handleGenerateUmlDiagram.bind(this),
+      handleExportToSystemDesigner: this.handleExportToSystemDesigner.bind(this),
+    });
   }
 
   // Tool handler methods
-  private async handleCreateMsonModel(args: any): Promise<any> {
+  private async handleCreateMsonModel(args: unknown): Promise<any> {
     const validationResult = MsonModelSchema.safeParse(args);
     if (!validationResult.success) {
       return {
@@ -139,8 +65,8 @@ You can now use this model with other tools.`;
     };
   }
 
-  private async handleValidateMsonModel(args: any): Promise<any> {
-    const { model } = args;
+  private async handleValidateMsonModel(args: unknown): Promise<any> {
+    const { model } = args as { model: unknown };
     const validationResult = MsonModelSchema.safeParse(model);
     if (!validationResult.success) {
       return {
@@ -171,8 +97,11 @@ Model is ready for UML generation and export.`;
     return { content: [{ type: 'text', text: successMessage }] };
   }
 
-  private async handleGenerateUmlDiagram(args: any): Promise<any> {
-    const { model, format = 'plantuml' } = args;
+  private async handleGenerateUmlDiagram(args: unknown): Promise<any> {
+    const { model, format = 'plantuml' } = args as {
+      model: unknown;
+      format?: 'plantuml' | 'mermaid';
+    };
     const validationResult = MsonModelSchema.safeParse(model);
     if (!validationResult.success) {
       return {
@@ -219,8 +148,8 @@ ${umlOutput}
     return { content: [{ type: 'text', text: successMessage }] };
   }
 
-  private async handleExportToSystemDesigner(args: any): Promise<any> {
-    const { model, filePath } = args;
+  private async handleExportToSystemDesigner(args: unknown): Promise<any> {
+    const { model, filePath } = args as { model: unknown; filePath?: string };
     const validationResult = MsonModelSchema.safeParse(model);
     if (!validationResult.success) {
       return {
@@ -278,268 +207,6 @@ File saved at: ${fileName}`;
         isError: true,
       };
     }
-  }
-
-  private setupTools(): void {
-    // Tool: Create MSON Model
-    this.server.tool(
-      'create_mson_model',
-      'Create and validate MSON models from structured data',
-      {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Name of the model',
-          },
-          type: {
-            type: 'string',
-            enum: ['class', 'component', 'deployment', 'usecase'],
-            description: 'Type of the model',
-          },
-          description: {
-            type: 'string',
-            description: 'Optional description of the model',
-          },
-          entities: {
-            type: 'array',
-            description: 'List of entities in the model',
-            items: {
-              type: 'object',
-              properties: {
-                id: {
-                  type: 'string',
-                  description: 'Unique identifier for the entity',
-                },
-                name: {
-                  type: 'string',
-                  description: 'Name of the entity',
-                },
-                type: {
-                  type: 'string',
-                  enum: ['class', 'interface', 'enum', 'component', 'actor'],
-                  description: 'Type of the entity',
-                },
-                stereotype: {
-                  type: 'string',
-                  description: 'Optional stereotype for the entity',
-                },
-                namespace: {
-                  type: 'string',
-                  description: 'Optional namespace for the entity',
-                },
-                attributes: {
-                  type: 'array',
-                  description: 'List of attributes for the entity',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      name: {
-                        type: 'string',
-                        description: 'Name of the attribute',
-                      },
-                      type: {
-                        type: 'string',
-                        description: 'Type of the attribute',
-                      },
-                      visibility: {
-                        type: 'string',
-                        enum: ['public', 'private', 'protected'],
-                        default: 'public',
-                        description: 'Visibility of the attribute',
-                      },
-                      isStatic: {
-                        type: 'boolean',
-                        default: false,
-                        description: 'Whether the attribute is static',
-                      },
-                      isReadOnly: {
-                        type: 'boolean',
-                        default: false,
-                        description: 'Whether the attribute is read-only',
-                      },
-                    },
-                    required: ['name', 'type'],
-                  },
-                },
-                methods: {
-                  type: 'array',
-                  description: 'List of methods for the entity',
-                  items: {
-                    type: 'object',
-                    properties: {
-                      name: {
-                        type: 'string',
-                        description: 'Name of the method',
-                      },
-                      parameters: {
-                        type: 'array',
-                        description: 'List of parameters for the method',
-                        items: {
-                          type: 'object',
-                          properties: {
-                            name: {
-                              type: 'string',
-                              description: 'Name of the parameter',
-                            },
-                            type: {
-                              type: 'string',
-                              description: 'Type of the parameter',
-                            },
-                          },
-                          required: ['name', 'type'],
-                        },
-                      },
-                      returnType: {
-                        type: 'string',
-                        default: 'void',
-                        description: 'Return type of the method',
-                      },
-                      visibility: {
-                        type: 'string',
-                        enum: ['public', 'private', 'protected'],
-                        default: 'public',
-                        description: 'Visibility of the method',
-                      },
-                      isStatic: {
-                        type: 'boolean',
-                        default: false,
-                        description: 'Whether the method is static',
-                      },
-                      isAbstract: {
-                        type: 'boolean',
-                        default: false,
-                        description: 'Whether the method is abstract',
-                      },
-                    },
-                    required: ['name'],
-                  },
-                },
-              },
-              required: ['id', 'name', 'type'],
-            },
-          },
-        },
-        relationships: {
-          type: 'array',
-          description: 'List of relationships between entities',
-          items: {
-            type: 'object',
-            properties: {
-              id: {
-                type: 'string',
-                description: 'Unique identifier for the relationship',
-              },
-              from: {
-                type: 'string',
-                description: 'ID of the source entity',
-              },
-              to: {
-                type: 'string',
-                description: 'ID of the target entity',
-              },
-              type: {
-                type: 'string',
-                enum: [
-                  'association',
-                  'inheritance',
-                  'implementation',
-                  'dependency',
-                  'aggregation',
-                  'composition',
-                ],
-                description: 'Type of relationship',
-              },
-              multiplicity: {
-                type: 'object',
-                properties: {
-                  from: {
-                    type: 'string',
-                    description: 'Multiplicity from source entity',
-                  },
-                  to: {
-                    type: 'string',
-                    description: 'Multiplicity to target entity',
-                  },
-                },
-              },
-              name: {
-                type: 'string',
-                description: 'Optional name for the relationship',
-              },
-            },
-            required: ['id', 'from', 'to', 'type'],
-          },
-        },
-        required: ['name', 'type'],
-        additionalProperties: false,
-      },
-      (args) => this.handleCreateMsonModel(args)
-    );
-
-    // Tool: Validate MSON Model
-    this.server.tool(
-      'validate_mson_model',
-      'Validate MSON model consistency and completeness',
-      {
-        type: 'object',
-        properties: {
-          model: {
-            type: 'object',
-            description: 'The MSON model to validate',
-          },
-        },
-        required: ['model'],
-        additionalProperties: false,
-      },
-      (args) => this.handleValidateMsonModel(args)
-    );
-
-    // Tool: Generate UML Diagram
-    this.server.tool(
-      'generate_uml_diagram',
-      'Generate UML diagrams in PlantUML and Mermaid formats',
-      {
-        type: 'object',
-        properties: {
-          model: {
-            type: 'object',
-            description: 'The MSON model to generate UML from',
-          },
-          format: {
-            type: 'string',
-            enum: ['plantuml', 'mermaid'],
-            default: 'plantuml',
-            description: 'The output format for the UML diagram',
-          },
-        },
-        required: ['model'],
-        additionalProperties: false,
-      },
-      (args) => this.handleGenerateUmlDiagram(args)
-    );
-
-    // Tool: Export to System Designer
-    this.server.tool(
-      'export_to_system_designer',
-      'Export models to System Designer application format',
-      {
-        type: 'object',
-        properties: {
-          model: {
-            type: 'object',
-            description: 'The MSON model to export',
-          },
-          filePath: {
-            type: 'string',
-            description: 'Optional file path for the exported file',
-          },
-        },
-        required: ['model'],
-        additionalProperties: false,
-      },
-      (args) => this.handleExportToSystemDesigner(args)
-    );
   }
 
   private ensureUniqueIds(model: MsonModel): MsonModel {
@@ -699,7 +366,7 @@ File saved at: ${fileName}`;
         const visibility = this.visibilityToMermaid(attr.visibility);
         const staticStr = attr.isStatic ? '*' : '';
         const readOnlyStr = attr.isReadOnly ? '?' : '';
-        mermaid += `    ${visibility}${staticStr}${readOnlyStr}${attr.name}${attr.type ? ': ' + attr.type : ''}\n`;
+        mermaid += `    ${visibility}${staticStr}${readOnlyStr}${attr.name}${attr.type ? `: ${attr.type}` : ''}\n`;
       }
 
       for (const method of entity.methods) {
@@ -707,9 +374,9 @@ File saved at: ${fileName}`;
         const staticStr = method.isStatic ? '*' : '';
         const abstractStr = method.isAbstract ? '*' : '';
         const params = method.parameters
-          .map((p) => `${p.name}${p.type ? ': ' + p.type : ''}`)
+          .map((p) => `${p.name}${p.type ? `: ${p.type}` : ''}`)
           .join(', ');
-        mermaid += `    ${visibility}${staticStr}${abstractStr}${method.name}(${params})${method.returnType ? ': ' + method.returnType : ''}\n`;
+        mermaid += `    ${visibility}${staticStr}${abstractStr}${method.name}(${params})${method.returnType ? `: ${method.returnType}` : ''}\n`;
       }
 
       mermaid += '}\n';

@@ -1,6 +1,6 @@
 ---
-type: "always_apply"
-description: "Forbidden actions including package management restrictions, git workflow rules, security constraints, and code quality requirements"
+type: 'always_apply'
+description: 'Forbidden actions including package management restrictions, git workflow rules, security constraints, and code quality requirements'
 ---
 
 # PROHIBITED_ACTIONS.md

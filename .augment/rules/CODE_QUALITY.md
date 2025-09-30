@@ -1,6 +1,6 @@
 ---
-type: "agent_requested"
-description: "Standards for language best practices, code style, documentation, maintainability, performance, and security considerations"
+type: 'agent_requested'
+description: 'Standards for language best practices, code style, documentation, maintainability, performance, and security considerations'
 ---
 
 # CODE_QUALITY.md

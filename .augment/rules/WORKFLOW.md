@@ -1,6 +1,6 @@
 ---
-type: "always_apply"
-description: "Systematic development workflow including design-build-test process, reuse principles, testing requirements, and quality gates"
+type: 'always_apply'
+description: 'Systematic development workflow including design-build-test process, reuse principles, testing requirements, and quality gates'
 ---
 
 # WORKFLOW.md
