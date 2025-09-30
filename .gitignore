@@ -80,5 +80,7 @@ docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md
 # Backup files
 *.backup
 
-.augment/
-.zed/
+# Development tool directories (local configuration, should not be committed)
+/.augment/rules/
+/.serena/
+/.zed/
