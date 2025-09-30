@@ -277,9 +277,6 @@ describe('End-to-End Workflow Tests', () => {
 
     expect(validation.isValid).toBe(false);
     expect(validation.warnings.some((w) => w.severity === 'error')).toBe(true);
-    expect(
-      validation.warnings.some((w) => w.message.includes('non-existent schema'))
-    ).toBe(true);
+    expect(validation.warnings.some((w) => w.message.includes('non-existent schema'))).toBe(true);
   });
 });
-

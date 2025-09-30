@@ -8,9 +8,7 @@
     "smg6lqse9369y2wze9tn": {
       "_id": "smg6lqse9369y2wze9tn",
       "_name": "Customer",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "customerId": "collection",
       "firstName": "collection",
       "lastName": "collection",
@@ -33,9 +31,7 @@
     "smg6lqse92lui8cwcuyh": {
       "_id": "smg6lqse92lui8cwcuyh",
       "_name": "Account",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "accountNumber": "collection",
       "accountType": "collection",
       "balance": "collection",
@@ -55,9 +51,7 @@
     "smg6lqse9ti3nm36iod": {
       "_id": "smg6lqse9ti3nm36iod",
       "_name": "Transaction",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "transactionId": "collection",
       "transactionType": "collection",
       "amount": "collection",
@@ -74,9 +68,7 @@
     "smg6lqse9wmnf8j6ng1m": {
       "_id": "smg6lqse9wmnf8j6ng1m",
       "_name": "Loan",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "loanId": "collection",
       "loanType": "collection",
       "principalAmount": "collection",
@@ -97,9 +89,7 @@
     "smg6lqse93noh7ekf4zc": {
       "_id": "smg6lqse93noh7ekf4zc",
       "_name": "Branch",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "branchId": "collection",
       "branchName": "collection",
       "address": "collection",
@@ -118,9 +108,7 @@
     "smg6lqse97g9un4flt4p": {
       "_id": "smg6lqse97g9un4flt4p",
       "_name": "Employee",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "employeeId": "collection",
       "firstName": "collection",
       "lastName": "collection",
@@ -139,9 +127,7 @@
     "smg6lqse9j7i6erhxg8": {
       "_id": "smg6lqse9j7i6erhxg8",
       "_name": "Address",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "street": "link",
       "city": "link",
       "state": "link",
@@ -156,9 +142,7 @@
     "smg6lqse996znt7d8ov9": {
       "_id": "smg6lqse996znt7d8ov9",
       "_name": "LoanApplication",
-      "_inherit": [
-        "_Component"
-      ],
+      "_inherit": ["_Component"],
       "applicationId": "collection",
       "customer": "collection",
       "loanType": "collection",
@@ -181,30 +165,14 @@
     "mmg6lqse9ez3cfdygkwl": {
       "_id": "mmg6lqse9ez3cfdygkwl",
       "_name": "Customer",
-      "customerId": [
-        "string"
-      ],
-      "firstName": [
-        "string"
-      ],
-      "lastName": [
-        "string"
-      ],
-      "email": [
-        "string"
-      ],
-      "phone": [
-        "string"
-      ],
-      "dateOfBirth": [
-        "Date"
-      ],
-      "address": [
-        "Address"
-      ],
-      "creditScore": [
-        "number"
-      ],
+      "customerId": ["string"],
+      "firstName": ["string"],
+      "lastName": ["string"],
+      "email": ["string"],
+      "phone": ["string"],
+      "dateOfBirth": ["Date"],
+      "address": ["Address"],
+      "creditScore": ["number"],
       "openAccount": {
         "=>": "Account",
         "accountType": "string"
@@ -228,42 +196,22 @@
         "toAccount": "Account",
         "amount": "number"
       },
-      "owns": [
-        "Account"
-      ],
-      "has": [
-        "Loan"
-      ],
-      "submits": [
-        "LoanApplication"
-      ],
+      "owns": ["Account"],
+      "has": ["Loan"],
+      "submits": ["LoanApplication"],
       "branch": "Branch",
       "lives at": "Address"
     },
     "mmg6lqse9vmu4sgyoman": {
       "_id": "mmg6lqse9vmu4sgyoman",
       "_name": "Account",
-      "accountNumber": [
-        "string"
-      ],
-      "accountType": [
-        "string"
-      ],
-      "balance": [
-        "number"
-      ],
-      "interestRate": [
-        "number"
-      ],
-      "dateOpened": [
-        "Date"
-      ],
-      "isActive": [
-        "boolean"
-      ],
-      "minimumBalance": [
-        "number"
-      ],
+      "accountNumber": ["string"],
+      "accountType": ["string"],
+      "balance": ["number"],
+      "interestRate": ["number"],
+      "dateOpened": ["Date"],
+      "isActive": ["boolean"],
+      "minimumBalance": ["number"],
       "deposit": {
         "=>": "boolean",
         "amount": "number"
@@ -285,37 +233,19 @@
         "=>": "boolean"
       },
       "customer": "Customer",
-      "has": [
-        "Transaction"
-      ]
+      "has": ["Transaction"]
     },
     "mmg6lqse98jzoitqklxh": {
       "_id": "mmg6lqse98jzoitqklxh",
       "_name": "Transaction",
-      "transactionId": [
-        "string"
-      ],
-      "transactionType": [
-        "string"
-      ],
-      "amount": [
-        "number"
-      ],
-      "timestamp": [
-        "Date"
-      ],
-      "description": [
-        "string"
-      ],
-      "status": [
-        "string"
-      ],
-      "fromAccount": [
-        "Account"
-      ],
-      "toAccount": [
-        "Account"
-      ],
+      "transactionId": ["string"],
+      "transactionType": ["string"],
+      "amount": ["number"],
+      "timestamp": ["Date"],
+      "description": ["string"],
+      "status": ["string"],
+      "fromAccount": ["Account"],
+      "toAccount": ["Account"],
       "processTransaction": {
         "=>": "boolean"
       },
@@ -330,36 +260,16 @@
     "mmg6lqse9k488div3grd": {
       "_id": "mmg6lqse9k488div3grd",
       "_name": "Loan",
-      "loanId": [
-        "string"
-      ],
-      "loanType": [
-        "string"
-      ],
-      "principalAmount": [
-        "number"
-      ],
-      "interestRate": [
-        "number"
-      ],
-      "termMonths": [
-        "number"
-      ],
-      "startDate": [
-        "Date"
-      ],
-      "endDate": [
-        "Date"
-      ],
-      "monthlyPayment": [
-        "number"
-      ],
-      "outstandingBalance": [
-        "number"
-      ],
-      "loanStatus": [
-        "string"
-      ],
+      "loanId": ["string"],
+      "loanType": ["string"],
+      "principalAmount": ["number"],
+      "interestRate": ["number"],
+      "termMonths": ["number"],
+      "startDate": ["Date"],
+      "endDate": ["Date"],
+      "monthlyPayment": ["number"],
+      "outstandingBalance": ["number"],
+      "loanStatus": ["string"],
       "calculateMonthlyPayment": {
         "=>": "number"
       },
@@ -380,24 +290,12 @@
     "mmg6lqse9neh87ue2f1d": {
       "_id": "mmg6lqse9neh87ue2f1d",
       "_name": "Branch",
-      "branchId": [
-        "string"
-      ],
-      "branchName": [
-        "string"
-      ],
-      "address": [
-        "Address"
-      ],
-      "phoneNumber": [
-        "string"
-      ],
-      "manager": [
-        "Employee"
-      ],
-      "operatingHours": [
-        "string"
-      ],
+      "branchId": ["string"],
+      "branchName": ["string"],
+      "address": ["Address"],
+      "phoneNumber": ["string"],
+      "manager": ["Employee"],
+      "operatingHours": ["string"],
       "openBranch": {
         "=>": "boolean"
       },
@@ -411,42 +309,22 @@
       "getBranchDetails": {
         "=>": "string"
       },
-      "serves": [
-        "Customer"
-      ],
-      "employs": [
-        "Employee"
-      ],
+      "serves": ["Customer"],
+      "employs": ["Employee"],
       "employee": "Employee",
       "located at": "Address"
     },
     "mmg6lqse9wbqkhtyyf8m": {
       "_id": "mmg6lqse9wbqkhtyyf8m",
       "_name": "Employee",
-      "employeeId": [
-        "string"
-      ],
-      "firstName": [
-        "string"
-      ],
-      "lastName": [
-        "string"
-      ],
-      "position": [
-        "string"
-      ],
-      "department": [
-        "string"
-      ],
-      "salary": [
-        "number"
-      ],
-      "hireDate": [
-        "Date"
-      ],
-      "branch": [
-        "Branch"
-      ],
+      "employeeId": ["string"],
+      "firstName": ["string"],
+      "lastName": ["string"],
+      "position": ["string"],
+      "department": ["string"],
+      "salary": ["number"],
+      "hireDate": ["Date"],
+      "branch": ["Branch"],
       "processTransaction": {
         "=>": "boolean",
         "transaction": "Transaction"
@@ -490,36 +368,16 @@
     "mmg6lqse9djiot4hba2u": {
       "_id": "mmg6lqse9djiot4hba2u",
       "_name": "LoanApplication",
-      "applicationId": [
-        "string"
-      ],
-      "customer": [
-        "Customer"
-      ],
-      "loanType": [
-        "string"
-      ],
-      "requestedAmount": [
-        "number"
-      ],
-      "applicationDate": [
-        "Date"
-      ],
-      "applicationStatus": [
-        "string"
-      ],
-      "creditScore": [
-        "number"
-      ],
-      "income": [
-        "number"
-      ],
-      "approvedBy": [
-        "Employee"
-      ],
-      "approvalDate": [
-        "Date"
-      ],
+      "applicationId": ["string"],
+      "customer": ["Customer"],
+      "loanType": ["string"],
+      "requestedAmount": ["number"],
+      "applicationDate": ["Date"],
+      "applicationStatus": ["string"],
+      "creditScore": ["number"],
+      "income": ["number"],
+      "approvedBy": ["Employee"],
+      "approvalDate": ["Date"],
       "submitApplication": {
         "=>": "boolean"
       },
@@ -533,12 +391,8 @@
       "calculateLoanTerms": {
         "=>": "Loan"
       },
-      "approved by": [
-        "Employee"
-      ],
-      "results in": [
-        "Loan"
-      ]
+      "approved by": ["Employee"],
+      "results in": ["Loan"]
     }
   },
   "types": {},

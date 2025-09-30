@@ -36,6 +36,10 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 - ✅ **Multiple UML Formats**: Support for both PlantUML and Mermaid diagram generation
 - ✅ **System Designer Integration**: Direct export to System Designer macOS application
 - ✅ **Comprehensive Testing**: 46 tests with 303 expect() calls covering all functionality
+- ✅ **Streamable HTTP Transport**: Modern MCP protocol (2025-03-26 specification)
+- ✅ **Stateless Operation**: Each request creates new server instance
+- ✅ **Single Endpoint**: Single `/mcp` endpoint handles all operations
+- ✅ **Workers Optimized**: Stateless design perfect for Cloudflare Workers
 
 ## Installation
 
@@ -106,8 +110,10 @@ bun run deploy
 Your MCP server will be available at:
 
 ```text
-https://system-designer-mcp.<your-subdomain>.workers.dev
+https://system-designer-mcp.system-designer-mcp.workers.dev
 ```
+
+**Production Instance**: The server is currently deployed and available at the URL above.
 
 **Key Features:**
 
