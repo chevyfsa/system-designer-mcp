@@ -3,10 +3,11 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { writeFile } from 'fs-extra';
 import { randomUUID } from 'node:crypto'; // Keep for Node.js compatibility in local version
 
-import { MsonModelSchema } from './schemas.js';
+import { MsonModelSchema, CreateMsonModelInputSchema } from './schemas.js';
 import { setupTools } from './tools.js';
 import { msonToSystemRuntimeBundle } from './transformers/system-runtime.js';
 import type { MsonModel, ValidationWarning } from './types.js';
+import type { z } from 'zod';
 import { validateSystemRuntimeBundle } from './validators/system-runtime.js';
 
 // ============================================================================
@@ -35,7 +36,7 @@ class SystemDesignerMCPServer {
 
   // Tool handler methods
   private async handleCreateMsonModel(args: unknown): Promise<any> {
-    const validationResult = MsonModelSchema.safeParse(args);
+    const validationResult = CreateMsonModelInputSchema.safeParse(args);
     if (!validationResult.success) {
       return {
         content: [{ type: 'text', text: `Validation Error: ${validationResult.error.message}` }],
@@ -335,17 +336,30 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
     }
   }
 
-  private ensureUniqueIds(model: MsonModel): MsonModel {
+  private ensureUniqueIds(model: z.infer<typeof CreateMsonModelInputSchema>): MsonModel {
     return {
-      ...model,
       id: model.id || `model_${Date.now()}`,
+      name: model.name,
+      type: model.type,
+      description: model.description,
       entities: model.entities.map((entity) => ({
-        ...entity,
         id: entity.id || `entity_${randomUUID()}`,
+        name: entity.name,
+        type: entity.type,
+        description: entity.description,
+        attributes: entity.attributes || [],
+        methods: entity.methods || [],
+        stereotype: entity.stereotype,
+        namespace: entity.namespace,
       })),
       relationships: model.relationships.map((relationship) => ({
-        ...relationship,
         id: relationship.id || `rel_${randomUUID()}`,
+        from: relationship.from,
+        to: relationship.to,
+        type: relationship.type,
+        multiplicity: relationship.multiplicity,
+        name: relationship.name,
+        description: relationship.description,
       })),
     };
   }

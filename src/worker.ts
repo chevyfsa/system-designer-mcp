@@ -11,7 +11,7 @@
 // Cloudflare Workers global types - these are available in the Workers runtime
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { MsonModelSchema } from './schemas.js';
+import { MsonModelSchema, CreateMsonModelInputSchema } from './schemas.js';
 import { setupTools } from './tools.js';
 import { msonToSystemRuntimeBundle } from './transformers/system-runtime.js';
 import type { MsonModel, ValidationWarning } from './types.js';
@@ -60,27 +60,13 @@ class SystemDesignerMCPServerCore {
   // ============================================================================
 
   async handleCreateMsonModel(args: unknown) {
-    const result = MsonModelSchema.safeParse(args);
+    // Use input schema that doesn't require IDs
+    const result = CreateMsonModelInputSchema.safeParse(args);
     if (!result.success) {
-      throw new Error(`Invalid MSON model: ${result.error.message}`);
+      throw new Error(`Invalid MSON model input: ${result.error.message}`);
     }
 
-    const model = result.data;
-
-    // Auto-generate IDs for entities and relationships if missing
-    if (model.entities) {
-      model.entities = model.entities.map((entity, index) => ({
-        ...entity,
-        id: entity.id || `entity_${index + 1}`,
-      }));
-    }
-
-    if (model.relationships) {
-      model.relationships = model.relationships.map((rel, index) => ({
-        ...rel,
-        id: rel.id || `relationship_${index + 1}`,
-      }));
-    }
+    const model = this.ensureUniqueIds(result.data);
 
     // Validate the complete model
     const validationResult = MsonModelSchema.safeParse(model);
@@ -470,6 +456,47 @@ class SystemDesignerMCPServerCore {
         isError: true,
       };
     }
+  }
+
+  // Helper method to generate UUIDs in Workers environment
+  private generateUUID(): string {
+    // Simple UUID v4 implementation for Workers
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
+  // Convert input schema to full MSON model with auto-generated IDs
+  private ensureUniqueIds(model: any): MsonModel {
+    return {
+      id: `model_${Date.now()}`,
+      name: model.name,
+      type: model.type,
+      description: model.description,
+      entities:
+        model.entities?.map((entity: any) => ({
+          id: `entity_${this.generateUUID()}`,
+          name: entity.name,
+          type: entity.type,
+          description: entity.description,
+          attributes: entity.attributes || [],
+          methods: entity.methods || [],
+          stereotype: entity.stereotype,
+          namespace: entity.namespace,
+        })) || [],
+      relationships:
+        model.relationships?.map((relationship: any) => ({
+          id: `rel_${this.generateUUID()}`,
+          from: relationship.from,
+          to: relationship.to,
+          type: relationship.type,
+          multiplicity: relationship.multiplicity,
+          name: relationship.name,
+          description: relationship.description,
+        })) || [],
+    };
   }
 }
 
