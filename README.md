@@ -1,5 +1,7 @@
 # System Designer MCP Server
 
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/chevyphillip/system-designer-mcp?utm_source=oss&utm_medium=github&utm_campaign=chevyphillip%2Fsystem-designer-mcp&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
+
 A Model Context Protocol (MCP) server that provides AI agents with tools to create, validate, and export UML system models and System Runtime bundles. Built with a tool-based approach that empowers LLMs to generate complete, executable System Runtime applications.
 
 ## 📚 Documentation
