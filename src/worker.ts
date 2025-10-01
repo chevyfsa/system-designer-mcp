@@ -468,16 +468,23 @@ class SystemDesignerMCPServerCore {
     });
   }
 
-  // Convert input schema to full MSON model with auto-generated IDs
+  // Convert input schema to full MSON model with proper ID mapping
   private ensureUniqueIds(model: any): MsonModel {
-    return {
-      id: `model_${Date.now()}`,
-      name: model.name,
-      type: model.type,
-      description: model.description,
-      entities:
-        model.entities?.map((entity: any) => ({
-          id: `entity_${this.generateUUID()}`,
+    // Create ID mapping for entities that need new IDs generated
+    const entityIdMap = new Map<string, string>();
+
+    const processedEntities =
+      model.entities?.map((entity: any) => {
+        // Preserve user-provided IDs, only generate if missing
+        const newId = entity.id || `entity_${this.generateUUID()}`;
+
+        // Track mapping for relationship updates
+        if (entity.id) {
+          entityIdMap.set(entity.id, newId);
+        }
+
+        return {
+          id: newId,
           name: entity.name,
           type: entity.type,
           description: entity.description,
@@ -485,17 +492,33 @@ class SystemDesignerMCPServerCore {
           methods: entity.methods || [],
           stereotype: entity.stereotype,
           namespace: entity.namespace,
-        })) || [],
-      relationships:
-        model.relationships?.map((relationship: any) => ({
-          id: `rel_${this.generateUUID()}`,
-          from: relationship.from,
-          to: relationship.to,
+        };
+      }) || [];
+
+    // Process relationships and update entity references if needed
+    const processedRelationships =
+      model.relationships?.map((relationship: any) => {
+        const fromId = entityIdMap.get(relationship.from) || relationship.from;
+        const toId = entityIdMap.get(relationship.to) || relationship.to;
+
+        return {
+          id: relationship.id || `rel_${this.generateUUID()}`,
+          from: fromId,
+          to: toId,
           type: relationship.type,
           multiplicity: relationship.multiplicity,
           name: relationship.name,
           description: relationship.description,
-        })) || [],
+        };
+      }) || [];
+
+    return {
+      id: `model_${Date.now()}`,
+      name: model.name,
+      type: model.type,
+      description: model.description,
+      entities: processedEntities,
+      relationships: processedRelationships,
     };
   }
 }
