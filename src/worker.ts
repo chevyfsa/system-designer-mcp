@@ -445,16 +445,33 @@ class SystemDesignerMCPServerCore {
           },
         };
       } else {
+        const errorWarnings = result.warnings.filter((warning) => warning.severity === 'error');
+        const otherWarnings = result.warnings.filter((warning) => warning.severity !== 'error');
+
+        const messageLines = [
+          '❌ System Runtime bundle validation failed:',
+          ...errorWarnings.map((warning) => `- ${warning.message}`),
+        ];
+
+        if (errorWarnings.length === 0) {
+          messageLines.push('- Unknown validation error');
+        }
+
+        if (otherWarnings.length > 0) {
+          messageLines.push('', '⚠️ Additional warnings:', ...otherWarnings.map((warning) => `- ${warning.message}`));
+        }
+
         return {
           content: [
             {
               type: 'text',
-              text: `❌ System Runtime bundle validation failed:\n${result.errors?.join('\n') || 'Unknown error'}`,
+              text: messageLines.join('\n'),
             },
           ],
           data: {
             isValid: false,
-            errors: result.errors,
+            errors: errorWarnings,
+            warnings: otherWarnings,
           },
           isError: true,
         };
