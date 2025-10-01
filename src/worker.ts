@@ -444,7 +444,11 @@ class SystemDesignerMCPServerCore {
         }
 
         if (otherWarnings.length > 0) {
-          messageLines.push('', '⚠️ Additional warnings:', ...otherWarnings.map((warning) => `- ${warning.message}`));
+          messageLines.push(
+            '',
+            '⚠️ Additional warnings:',
+            ...otherWarnings.map((warning) => `- ${warning.message}`)
+          );
         }
 
         return {
@@ -787,7 +791,7 @@ export default {
             mcp: '/mcp - Streamable HTTP endpoint for MCP connection',
             health: '/health - Health check endpoint',
           },
-          documentation: 'https://github.com/chevyfsa/system-designer-mcp',
+          documentation: 'https://github.com/chevyphillip/system-designer-mcp',
         }),
         {
           status: 200,
@@ -813,7 +817,7 @@ export default {
             endpoint: '/mcp',
             method: 'POST',
             description: 'POST JSON-RPC requests to this endpoint for MCP communication',
-            documentation: 'https://github.com/chevyfsa/system-designer-mcp',
+            documentation: 'https://github.com/chevyphillip/system-designer-mcp',
             availableTools: [
               'create_mson_model',
               'validate_mson_model',

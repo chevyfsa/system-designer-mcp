@@ -11,6 +11,8 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 - [Integration Guide](./docs/INTEGRATION-GUIDE.md) - Platform integration instructions
 - [Examples](./examples/README.md) - Sample models and use cases
 - [Contributing Guide](./CONTRIBUTING.md) - How to contribute to the project
+- [Code of Conduct](./CODE_OF_CONDUCT.md) - Community guidelines and behavior expectations
+- [Security Policy](./SECURITY.md) - Security vulnerability reporting and policies
 
 ## Features
 
@@ -35,7 +37,8 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 - ✅ **Multiple Inheritance**: Support for classes implementing multiple interfaces
 - ✅ **Multiple UML Formats**: Support for both PlantUML and Mermaid diagram generation
 - ✅ **System Designer Integration**: Direct export to System Designer macOS application
-- ✅ **Comprehensive Testing**: 46 tests with 303 expect() calls covering all functionality
+- ✅ **Comprehensive Testing**: 46 tests with 302 expect() calls covering all functionality
+- ✅ **Critical Bug Fixes**: Resolved SDMCP-001 through SDMCP-005 (property preservation, ID management, validation consistency)
 - ✅ **Streamable HTTP Transport**: Modern MCP protocol (2025-03-26 specification)
 - ✅ **Stateless Operation**: Each request creates new server instance
 - ✅ **Single Endpoint**: Single `/mcp` endpoint handles all operations
@@ -52,7 +55,7 @@ A Model Context Protocol (MCP) server that provides AI agents with tools to crea
 
 ```bash
 # Clone the repository
-git clone https://github.com/chevyfsa/system-designer-mcp.git
+git clone https://github.com/chevyphillip/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -69,7 +72,7 @@ bun test
 
 ```bash
 # Clone the repository
-git clone https://github.com/chevyfsa/system-designer-mcp.git
+git clone https://github.com/chevyphillip/system-designer-mcp.git
 cd system-designer-mcp
 
 # Install dependencies
@@ -110,10 +113,10 @@ bun run deploy
 Your MCP server will be available at:
 
 ```text
-https://system-designer-mcp.system-designer-mcp.workers.dev
+https://system-designer-mcp.<your-subdomain>.workers.dev
 ```
 
-**Production Instance**: The server is currently deployed and available at the URL above.
+**Note**: Replace `<your-subdomain>` with your actual Cloudflare Workers subdomain.
 
 **Key Features:**
 
@@ -254,10 +257,12 @@ For detailed API documentation, see the [API Reference](./docs/API-REFERENCE.md)
 
 ### Available Tools
 
-- **create_mson_model** - Create and validate MSON models from structured data
-- **validate_mson_model** - Validate MSON model consistency and completeness
+- **create_mson_model** - Create and validate MSON models from structured data with automatic ID generation and relationship mapping
+- **validate_mson_model** - Validate MSON model consistency and completeness with detailed error messages and relationship validation
 - **generate_uml_diagram** - Generate UML diagrams in PlantUML and Mermaid formats
 - **export_to_system_designer** - Export models to System Designer application format
+- **create_system_runtime_bundle** - Convert MSON models to complete System Runtime bundles with schemas, models, types, behaviors, and components
+- **validate_system_runtime_bundle** - Validate System Runtime bundles for correctness and compatibility
 
 ## Platform Integration
 
@@ -378,6 +383,23 @@ The server exports models in a format compatible with the System Designer macOS 
 1. **File Export**: Models are saved as JSON files
 2. **Automatic Integration**: Files can be imported directly into System Designer
 3. **Format Compatibility**: Uses MSON (Metamodel JavaScript Object Notation) format
+
+## Recent Changes & Improvements
+
+### Latest Updates (v1.0.0)
+- 🎯 **Critical Bug Fixes (SDMCP-001-005)**: Resolved property preservation, ID mapping, validation consistency, and bundle compatibility issues
+- 🔧 **Enhanced Error Messages**: Added detailed, actionable error messages with specific fix suggestions and examples
+- 🛡️ **Relationship Validation**: Proactive validation prevents orphaned references with clear guidance
+- 🔄 **Flexible Input Handling**: Support for both 'properties' and 'attributes' in entity definitions
+- 📋 **Comprehensive Bug Reports**: Detailed documentation of all issues and resolutions in `docs/BUG_REPORTS.md`
+- 🆕 **System Runtime Tools**: Added complete System Runtime bundle creation and validation functionality
+
+### Previous Features
+- 🏗️ **Modular Architecture**: Complete refactoring for SOLID principles compliance
+- 🧪 **Enhanced Testing**: 46 tests with 302 assertions covering all functionality including edge cases
+- 🚀 **Cloudflare Workers Support**: Remote MCP server deployment with modern JSON-RPC transport
+- 🔄 **Modern MCP SDK**: Updated to latest MCP TypeScript SDK (v1.18.2) patterns
+- 📊 **Documentation**: Complete API reference, integration guides, and deployment documentation
 
 ## Contributing
 

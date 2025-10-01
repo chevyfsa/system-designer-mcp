@@ -40,7 +40,7 @@ cd system-designer-mcp
 3. Add the upstream repository:
 
 ```bash
-git remote add upstream https://github.com/chevyfsa/system-designer-mcp.git
+git remote add upstream https://github.com/chevyphillip/system-designer-mcp.git
 ```
 
 ## Development Setup
@@ -247,7 +247,7 @@ git push origin feature/your-feature-name
 ```
 
 2. **Create a Pull Request** on GitHub:
-   - Go to https://github.com/chevyfsa/system-designer-mcp
+   - Go to https://github.com/chevyphillip/system-designer-mcp
    - Click "New Pull Request"
    - Select your fork and branch
    - Fill out the PR template

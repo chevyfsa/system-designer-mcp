@@ -79,12 +79,10 @@ docker/
 .dev.env
 
 # Internal documentation and planning (not for public release)
-CLAUDE.md
 PRD.md
 docs/SYSTEM-RUNTIME-EXECUTIVE-SUMMARY.md
 docs/SYSTEM-RUNTIME-GAP-ANALYSIS.md
 docs/SYSTEM-RUNTIME-IMPLEMENTATION-HANDOFF.md
-docs/SYSTEM-RUNTIME-INTEGRATION-GUIDE.md
 docs/SYSTEM-RUNTIME-INTEGRATION-ANALYSIS.md
 
 # Backup files

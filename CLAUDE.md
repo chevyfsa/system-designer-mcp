@@ -58,12 +58,15 @@ bun run src/cli.ts config
 
 The codebase follows SOLID principles with clear separation of concerns:
 
-- **`src/types.ts`** - TypeScript type definitions for MSON models
-- **`src/schemas.ts`** - Zod validation schemas for all data structures
+- **`src/types.ts`** - TypeScript type definitions for MSON models and System Runtime bundles
+- **`src/schemas.ts`** - Zod validation schemas for all data structures with flexible input handling
 - **`src/tools.ts`** - MCP tool registration using modern SDK patterns
-- **`src/index.ts`** - Main MCP server class with tool handler methods
+- **`src/index.ts`** - Main MCP server class with tool handler methods and ID mapping logic
 - **`src/cli.ts`** - Command-line interface for testing and integration
+- **`src/worker.ts`** - Cloudflare Workers implementation with modern JSON-RPC transport
 - **`src/integration/system-designer.ts`** - System Designer app integration
+- **`src/transformers/system-runtime.ts`** - MSON to System Runtime transformation logic
+- **`src/validators/system-runtime.ts`** - System Runtime bundle validation
 
 ### Modern MCP SDK Patterns
 
@@ -86,10 +89,12 @@ The server follows a tool-based approach where:
 
 All tools use `server.registerTool()` with Zod input schemas:
 
-- `create_mson_model` - Create and validate MSON models from structured data
-- `validate_mson_model` - Validate MSON model consistency and completeness
+- `create_mson_model` - Create and validate MSON models from structured data with automatic ID generation and relationship mapping
+- `validate_mson_model` - Validate MSON model consistency and completeness with detailed error messages and relationship validation
 - `generate_uml_diagram` - Generate UML diagrams in PlantUML and Mermaid formats
 - `export_to_system_designer` - Export models to System Designer application format
+- `create_system_runtime_bundle` - Convert MSON models to complete System Runtime bundles
+- `validate_system_runtime_bundle` - Validate System Runtime bundles for correctness and compatibility
 
 ## Key Technical Details
 
@@ -151,10 +156,13 @@ Models use Zod schemas with these key components:
 
 ### Error Handling
 
-- Comprehensive Zod validation with detailed error messages
-- Automatic ID generation for missing entity IDs
+- Comprehensive Zod validation with detailed, actionable error messages and fix suggestions
+- Automatic ID generation for missing entity IDs with relationship mapping
 - Orphan detection ensures relationships reference valid entities
 - Graceful fallbacks for file system operations
+- Flexible input handling (supports both 'properties' and 'attributes' in entity definitions)
+- Enhanced validation with specific guidance for common errors
+- System Runtime bundle validation with clear error reporting
 
 ## Important Notes
 
@@ -171,31 +179,54 @@ Models use Zod schemas with these key components:
 ## Code Quality and Maintenance
 
 ### Linting and Type Safety
+
 - **ESLint**: Configured for TypeScript with strict rules. Use `bun run lint` to check.
 - **TypeScript**: Strict mode enabled for maximum type safety
 - **Cloudflare Workers**: Use `/* eslint-disable no-undef */` for Workers global types
 - **Unused Variables**: Prefix with underscore (`_variable`) or remove to satisfy linter
 
 ### Cleanup Best Practices
+
 - **Script Files**: Console statements in `scripts/` are acceptable for user feedback
 - **Source Files**: Avoid debug `console.log` in production code
 - **Import Organization**: No unused imports - all dependencies are actively used
 - **Error Handling**: Comprehensive Zod validation with detailed error messages
 
 ### Development Workflow
+
 1. **Before Changes**: Run `bun run lint` to check code quality
 2. **During Development**: Use `bun test --watch` for continuous testing
 3. **After Changes**: Run `bun run lint && bun test && bun run build` to validate
 4. **Cleanup**: Remove unused variables, fix lint errors, maintain type safety
 
 ### Testing Requirements
+
 - All test data must include valid entity IDs
 - Tests access private methods using `@ts-expect-error` comments
-- 46 tests with 303 expect() calls covering all functionality
+- 46 tests with 302 expect() calls covering all functionality
 - Both local MCP server and Cloudflare Workers implementations tested
+- Updated tests match new error message formats and validation improvements
+- Comprehensive coverage for System Runtime bundle creation and validation
 
 ### Production Deployment
+
 - **Local Mode**: Use `bun run dev` for stdio transport development
-- **Cloudflare Workers**: Use `bun run deploy` for remote SSE transport
-- **Stateless Design**: Workers are stateless - sessions created on-demand
-- **Configuration**: Production URL in `claude-desktop-config.json`
+- **Cloudflare Workers**: Use `bun run deploy` for remote JSON-RPC transport
+- **Stateless Design**: Workers are stateless - each request creates new server instance
+- **Modern Transport**: Updated from SSE to Streamable HTTP JSON-RPC transport
+- **Configuration**: Update `claude-desktop-config.json` for local development setup
+
+## Recent Improvements & Bug Fixes
+
+### Critical Issues Resolved (SDMCP-001-005)
+- **Property Data Loss (SDMCP-001)**: Entity properties now preserved in output through flexible schema handling
+- **Entity ID Regeneration (SDMCP-002)**: Proper ID mapping ensures relationships work with auto-generated IDs
+- **Validation Tool Incompatibility (SDMCP-003)**: Tools now work seamlessly with consistent input/output formats
+- **System Runtime Bundle Issues (SDMCP-005)**: Flexible validation accepts both object and string formats
+
+### Best Practices Learned
+- **User-Friendly Error Messages**: Provide specific fix suggestions and examples in validation errors
+- **Flexible Input Handling**: Support multiple property names for better user experience
+- **Proactive Validation**: Fail fast on relationship issues to prevent invalid models
+- **Comprehensive Testing**: Update tests alongside error message changes for consistency
+- **Documentation**: Maintain detailed bug reports for troubleshooting and future reference
