@@ -3,7 +3,7 @@
 # Test script for production Cloudflare Workers deployment
 # Usage: ./test-production.sh [worker-url]
 
-WORKER_URL="${1:-https://system-designer-mcp.system-designer-mcp.workers.dev}"
+WORKER_URL="${1:-https://system-designer-mcp.your-subdomain.workers.dev}"
 
 echo "=== Testing Production System Designer MCP Server ==="
 echo "URL: $WORKER_URL"

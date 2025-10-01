@@ -69,17 +69,13 @@ After deployment, your MCP server will be available at:
 https://system-designer-mcp.<your-subdomain>.workers.dev
 ```
 
-**Production Deployment:**
-
-```text
-https://system-designer-mcp.system-designer-mcp.workers.dev
-```
+**Note:** Replace `<your-subdomain>` with your actual Cloudflare Workers subdomain.
 
 ### 4. Test Production Deployment
 
 ```bash
-# Run production tests
-./test-production.sh https://system-designer-mcp.system-designer-mcp.workers.dev
+# Run production tests (replace with your worker URL)
+./test-production.sh https://system-designer-mcp.<your-subdomain>.workers.dev
 ```
 
 ## Configuration
