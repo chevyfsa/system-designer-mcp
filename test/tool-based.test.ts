@@ -132,9 +132,8 @@ test('validate_mson_model detects orphaned relationships', async () => {
   expect(result.content[0].type).toBe('text');
 
   const textContent = result.content[0].text;
-  expect(textContent).toContain('✅ Model Validation Successful');
-  expect(textContent).toContain('⚠️ Warnings');
-  expect(textContent).toContain("non-existent 'from' entity: nonexistent");
+  expect(textContent).toContain('❌ Model validation failed due to relationship errors');
+  expect(textContent).toContain("references unknown entity 'nonexistent' in 'from' field");
 });
 
 test('generate_uml_diagram creates PlantUML markup', async () => {
@@ -238,7 +237,7 @@ test('create_mson_model rejects invalid model data', async () => {
   expect(result).toBeDefined();
   expect(result.content).toBeDefined();
   expect(result.content[0].type).toBe('text');
-  expect(result.content[0].text).toContain('Validation Error');
+  expect(result.content[0].text).toContain('create_mson_model validation failed');
 });
 
 test('validate_mson_model rejects invalid model structure', async () => {
@@ -255,7 +254,7 @@ test('validate_mson_model rejects invalid model structure', async () => {
   expect(result).toBeDefined();
   expect(result.content).toBeDefined();
   expect(result.content[0].type).toBe('text');
-  expect(result.content[0].text).toContain('❌ Model Validation Failed');
+  expect(result.content[0].text).toContain('validate_mson_model validation failed');
 });
 
 test('comprehensive workflow: create -> validate -> generate UML -> export', async () => {
