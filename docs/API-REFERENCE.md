@@ -264,6 +264,76 @@ const result = await mcpClient.callTool('export_to_system_designer', {
 ```
 
 ---
+---
+
+### 5. create_system_runtime_bundle
+
+Converts a validated MSON model into a complete System Runtime bundle (JSON string).
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                          |
+| --------- | ------ | -------- | ------------------------------------ |
+| `model`   | object | ✅       | Validated MSON model                 |
+| `version` | string | ❌       | Optional semantic version for bundle |
+
+#### Returns
+
+```typescript
+{
+  content: [
+    { type: 'text', text: string },               // Summary
+    { type: 'json', json: Record<string, any> },  // Bundle metadata or preview
+    { type: 'text', text: string }                // JSON string of bundle
+  ]
+}
+```
+
+#### Example Usage
+
+```javascript
+const bundle = await mcpClient.callTool('create_system_runtime_bundle', {
+  model: model.content[1].json,
+  version: '1.0.0',
+});
+```
+
+---
+
+### 6. validate_system_runtime_bundle
+
+Validates a System Runtime bundle for correctness and compatibility.
+
+#### Parameters
+
+| Parameter | Type   | Required | Description                                            |
+| --------- | ------ | -------- | ------------------------------------------------------ |
+| `bundle`  | string | ✅       | JSON string of the bundle generated in the prior step |
+
+#### Returns
+
+```typescript
+{
+  content: [
+    { type: 'text', text: string }
+  ],
+  data?: {
+    isValid: boolean;
+    bundle?: Record<string, any>;
+    errors?: Array<{ message: string }>;
+    warnings?: Array<{ message: string; severity?: 'error' | 'warn' }>;
+  },
+  isError?: boolean
+}
+```
+
+#### Example Usage
+
+```javascript
+const validation = await mcpClient.callTool('validate_system_runtime_bundle', {
+  bundle: bundle.content[2].text,
+});
+```
 
 ## Data Types
 

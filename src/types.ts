@@ -72,6 +72,8 @@ export interface MsonEntity {
   methods: MsonMethod[];
   stereotype?: string;
   namespace?: string;
+  // For enum entities
+  values?: string[];
 }
 
 /**
@@ -112,6 +114,9 @@ export interface MsonModel {
 export interface ValidationWarning {
   message: string;
   severity: 'warning' | 'error';
+  // Optional metadata used in validations
+  type?: string;
+  entityId?: string;
 }
 
 // ============================================================================

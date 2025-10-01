@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
-import { SystemDesignerIntegration } from './integration/system-designer.js';
 import * as path from 'path';
+import { SystemDesignerIntegration } from './integration/system-designer.js';
 
 enum CliCommand {
   TEST_INTEGRATION = 'test-integration',
@@ -91,7 +91,7 @@ class CLI {
     }
 
     try {
-      const msonModel = this.createTestModel(modelName, options.description);
+      const msonModel = this.createTestModel(modelName, options.description ?? '');
       const msonContent = JSON.stringify(msonModel, null, 2);
 
       await this.integration.exportMsonModel(modelName, msonContent);
@@ -105,7 +105,7 @@ class CLI {
     }
   }
 
-  private createTestModel(modelName: string, description: string): object {
+  private createTestModel(modelName: string, description?: string): object {
     return {
       name: modelName,
       description,

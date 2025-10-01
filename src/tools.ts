@@ -51,34 +51,10 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Create MSON Model',
       description: 'Create and validate MSON models from structured data',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', description: 'Name of the model' },
-          type: {
-            type: 'string',
-            enum: ['class', 'component', 'deployment', 'usecase'],
-            description: 'Type of the model',
-          },
-          description: {
-            type: 'string',
-            description: 'Optional description of the model',
-          },
-          entities: {
-            type: 'array',
-            items: { type: 'object' },
-            description: 'List of entities in the model',
-          },
-          relationships: {
-            type: 'array',
-            items: { type: 'object' },
-            description: 'List of relationships between entities',
-          },
-        },
-        required: ['name', 'type'],
-      },
+      inputSchema: (CreateMsonModelInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleCreateMsonModel(params)
+    async (params: unknown) =>
+      handlers.handleCreateMsonModel(params as z.infer<typeof CreateMsonModelInputSchema>) as any
   );
 
   // Tool: Validate MSON Model
@@ -87,17 +63,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Validate MSON Model',
       description: 'Validate MSON model consistency and completeness',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          model: {
-            description: 'The MSON model to validate',
-          },
-        },
-        required: ['model'],
-      },
+      inputSchema: (ValidateMsonModelInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleValidateMsonModel(params)
+    async (params: unknown) =>
+      handlers.handleValidateMsonModel(
+        params as z.infer<typeof ValidateMsonModelInputSchema>
+      ) as any
   );
 
   // Tool: Generate UML Diagram
@@ -106,23 +77,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Generate UML Diagram',
       description: 'Generate UML diagrams in PlantUML and Mermaid formats',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          model: {
-            description: 'The MSON model to generate UML from',
-          },
-          format: {
-            type: 'string',
-            enum: ['plantuml', 'mermaid'],
-            default: 'plantuml',
-            description: 'The output format for the UML diagram',
-          },
-        },
-        required: ['model'],
-      },
+      inputSchema: (GenerateUmlDiagramInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleGenerateUmlDiagram(params)
+    async (params: unknown) =>
+      handlers.handleGenerateUmlDiagram(
+        params as z.infer<typeof GenerateUmlDiagramInputSchema>
+      ) as any
   );
 
   // Tool: Export to System Designer
@@ -131,21 +91,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
     {
       title: 'Export to System Designer',
       description: 'Export models to System Designer application format',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          model: {
-            description: 'The MSON model to export',
-          },
-          filePath: {
-            type: 'string',
-            description: 'Optional file path for the exported model',
-          },
-        },
-        required: ['model'],
-      },
+      inputSchema: (ExportToSystemDesignerInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleExportToSystemDesigner(params)
+    async (params: unknown) =>
+      handlers.handleExportToSystemDesigner(
+        params as z.infer<typeof ExportToSystemDesignerInputSchema>
+      ) as any
   );
 
   // Tool: Create System Runtime Bundle
@@ -155,21 +106,12 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Create System Runtime Bundle',
       description:
         'Convert MSON model to complete System Runtime bundle with schemas, models, types, behaviors, and components',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          model: {
-            description: 'The MSON model to convert',
-          },
-          options: {
-            type: 'object',
-            description: 'Optional configuration options for bundle creation',
-          },
-        },
-        required: ['model'],
-      },
+      inputSchema: (CreateSystemRuntimeBundleInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleCreateSystemRuntimeBundle(params)
+    async (params: unknown) =>
+      handlers.handleCreateSystemRuntimeBundle(
+        params as z.infer<typeof CreateSystemRuntimeBundleInputSchema>
+      ) as any
   );
 
   // Tool: Validate System Runtime Bundle
@@ -179,16 +121,11 @@ export function setupTools(server: McpServer, handlers: ToolHandlers): void {
       title: 'Validate System Runtime Bundle',
       description:
         'Validate System Runtime bundle for correctness, including schema references, inheritance chains, and method signatures',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          bundle: {
-            description: 'The System Runtime bundle to validate',
-          },
-        },
-        required: ['bundle'],
-      },
+      inputSchema: (ValidateSystemRuntimeBundleInputSchema as z.ZodObject<any>).shape as any,
     },
-    async (params) => handlers.handleValidateSystemRuntimeBundle(params)
+    async (params: unknown) =>
+      handlers.handleValidateSystemRuntimeBundle(
+        params as z.infer<typeof ValidateSystemRuntimeBundleInputSchema>
+      ) as any
   );
 }

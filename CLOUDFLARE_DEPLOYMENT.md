@@ -7,25 +7,15 @@ This guide explains how to deploy the System Designer MCP Server to Cloudflare W
 The System Designer MCP Server can run in two modes:
 
 1. **Local Mode** (`src/index.ts`) - Uses stdio transport for local CLI usage
-2. **Remote Mode** (`src/worker.ts`) - Uses custom JSON-RPC transport for Cloudflare Workers deployment
+2. **Remote Mode** (`src/worker.ts`) - Uses JSON-RPC over HTTP at the single `/mcp` endpoint
 
-Both modes provide the same 6 MCP tools but with different transport mechanisms.
+Both modes provide the same 6 MCP tools with the same request/response shapes.
 
-**Transport Architecture Changes:**
+### Transport
 
-### Previous (Deprecated SSE Transport)
-
-- **Two-endpoint design**: `/sse` + `/message` endpoints
-- **Session management**: In-memory session storage
-- **Complex connections**: Long-lived SSE connections
-- **Limited scalability**: Resource-intensive for Workers
-
-### Current (Streamable HTTP Transport)
-
-- **Single endpoint design**: `/mcp` handles all operations
-- **Stateless operation**: Each request creates new server instance
-- **Simplified architecture**: Better suited for Workers
-- **Improved reliability**: Standard HTTP patterns
+- **Single endpoint**: `/mcp` handles all operations
+- **Stateless**: Each request creates a new server instance (Workers-friendly)
+- **Standard HTTP**: Simple POST requests with JSON-RPC 2.0 payloads
 
 ## Prerequisites
 
@@ -46,9 +36,16 @@ bun install
 ```bash
 # Start local development server
 bun run dev:worker
+```
 
-# In another terminal, run tests
-./test-worker.sh
+- Health check: `curl http://localhost:8787/health`
+- Server info: `curl http://localhost:8787/mcp` (GET)
+- JSON-RPC call (tools/list):
+
+```bash
+curl -s -X POST "http://localhost:8787/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
 
 The server will be available at `http://localhost:8787`
@@ -73,13 +70,6 @@ https://system-designer-mcp.<your-subdomain>.workers.dev
 
 ```text
 https://system-designer-mcp.system-designer-mcp.workers.dev
-```
-
-### 4. Test Production Deployment
-
-```bash
-# Run production tests
-./test-production.sh https://system-designer-mcp.system-designer-mcp.workers.dev
 ```
 
 ## Configuration
@@ -118,28 +108,37 @@ Currently, no environment variables are required. For future enhancements:
 
 ### Transport Layer
 
-The Workers deployment uses **Server-Sent Events (SSE)** for MCP communication:
+The Workers deployment uses JSON-RPC 2.0 over standard HTTP.
 
-1. **SSE Endpoint** (`/sse`) - Client connects to establish event stream
-2. **Message Endpoint** (`/message?sessionId=<id>`) - Client POSTs MCP messages
-3. **Session Management** - In-memory session storage (1-hour timeout)
+- Single endpoint: `/mcp`
+- GET `/mcp`: Returns server/tool info
+- POST `/mcp`: Accepts JSON-RPC 2.0 payloads
 
 ### Endpoints
 
-| Endpoint                  | Method | Description                   |
-| ------------------------- | ------ | ----------------------------- |
-| `/`                       | GET    | Server information and usage  |
-| `/health`                 | GET    | Health check endpoint         |
-| `/sse`                    | GET    | SSE connection for MCP client |
-| `/message?sessionId=<id>` | POST   | Send MCP messages             |
+| Endpoint  | Method | Description                         |
+| --------- | ------ | ----------------------------------- |
+| `/`       | GET    | Server information and usage         |
+| `/health` | GET    | Health check endpoint                |
+| `/mcp`    | GET    | Server/tool info (human-readable)    |
+| `/mcp`    | POST   | JSON-RPC 2.0 requests (tools, etc.) |
 
-### Session Flow
+### Example JSON-RPC calls
 
-```text
-1. Client → GET /sse
-2. Server → event: endpoint\ndata: /message?sessionId=abc123
-3. Client → POST /message?sessionId=abc123 (MCP request)
-4. Server → Response (MCP result)
+- tools/list
+
+```bash
+curl -s -X POST "http://localhost:8787/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
+```
+
+- tools/call (create_mson_model)
+
+```bash
+curl -s -X POST "http://localhost:8787/mcp" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"create_mson_model","arguments":{"name":"Demo","type":"class","entities":[],"relationships":[]}}}'
 ```
 
 ## Available Tools
@@ -194,36 +193,17 @@ All 6 MCP tools are available in Workers mode:
 
 ## Testing
 
-### Automated Testing
-
-Run the test script to verify all endpoints:
-
-```bash
-./test-worker.sh
-```
-
-Tests include:
-
-- Health check
-- Server information
-- SSE connection
-- Tool listing
-- Tool execution
-
-### Manual Testing
+Use simple curl requests against the single `/mcp` endpoint.
 
 ```bash
 # Health check
 curl http://localhost:8787/health
 
-# Get server info
-curl http://localhost:8787/
+# Readable server info
+curl http://localhost:8787/mcp
 
-# Establish SSE connection
-curl -N http://localhost:8787/sse
-
-# List tools (replace SESSION_ID)
-curl -X POST "http://localhost:8787/message?sessionId=SESSION_ID" \
+# List tools (JSON-RPC)
+curl -s -X POST "http://localhost:8787/mcp" \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'
 ```
@@ -312,7 +292,6 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 - [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/)
 - [MCP Protocol Specification](https://modelcontextprotocol.io/)
 - [Wrangler CLI Reference](https://developers.cloudflare.com/workers/wrangler/)
-- [Server-Sent Events Specification](https://html.spec.whatwg.org/multipage/server-sent-events.html)
 
 ## Support
 

@@ -79,7 +79,7 @@ const diagram = await client.callTool('generate_uml_diagram', {
 
 ### 1. Claude Desktop Integration
 
-Add to your Claude Desktop MCP configuration:
+Add to your Claude Desktop MCP configuration (see examples/claude-desktop-config.example.json):
 
 ```json
 {

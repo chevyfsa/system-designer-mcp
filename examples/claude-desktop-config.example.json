@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "system-designer": {
+      "command": "bun",
+      "args": ["run", "src/index.ts"],
+      "cwd": "/absolute/path/to/system-designer-mcp"
+    }
+  }
+}
+

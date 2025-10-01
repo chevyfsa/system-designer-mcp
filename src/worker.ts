@@ -26,6 +26,12 @@ interface Env {
   // For example: KV namespaces, Durable Objects, etc.
   [key: string]: unknown;
 }
+// Minimal ExecutionContext type for Workers when @cloudflare/workers-types is not installed
+// This covers only the members we use.
+declare interface ExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
+  passThroughOnException(): void;
+}
 
 // ============================================================================
 // SHARED MCP SERVER CLASS (Workers-compatible)
@@ -125,6 +131,7 @@ class SystemDesignerMCPServerCore {
             type: 'orphaned_relationship',
             message: `Relationship "${relationship.id}" references unknown entity "${relationship.from}"`,
             entityId: relationship.id,
+            severity: 'warning',
           });
         }
 
@@ -133,6 +140,7 @@ class SystemDesignerMCPServerCore {
             type: 'orphaned_relationship',
             message: `Relationship "${relationship.id}" references unknown entity "${relationship.to}"`,
             entityId: relationship.id,
+            severity: 'warning',
           });
         }
       }
@@ -458,7 +466,11 @@ class SystemDesignerMCPServerCore {
         }
 
         if (otherWarnings.length > 0) {
-          messageLines.push('', '⚠️ Additional warnings:', ...otherWarnings.map((warning) => `- ${warning.message}`));
+          messageLines.push(
+            '',
+            '⚠️ Additional warnings:',
+            ...otherWarnings.map((warning) => `- ${warning.message}`)
+          );
         }
 
         return {
@@ -818,7 +830,6 @@ export default {
           const response = await handleJSONRPCRequest(mcpServer, requestJson);
 
           // Clean up server
-          mcpServer.server.close();
 
           return new Response(JSON.stringify(response), {
             status: 200,

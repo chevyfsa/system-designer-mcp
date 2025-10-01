@@ -32,7 +32,6 @@
     "build": "bun build src/index.ts --outdir=dist --target=node",
     "build:worker": "bun build src/worker.ts --outdir=dist --target=browser --minify",
     "start": "bun dist/index.js",
-    "start:http": "bun dist/http-server.js",
     "dev:worker": "wrangler dev",
     "deploy": "wrangler deploy",
     "test": "bun test",
@@ -40,7 +39,9 @@
     "lint": "bunx eslint . --ext .ts",
     "lint:fix": "bunx eslint . --ext .ts --fix",
     "format": "bunx prettier --write .",
-    "format:check": "bunx prettier --check ."
+    "format:check": "bunx prettier --check .",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json",
+    "typecheck:worker": "tsc --noEmit -p tsconfig.worker.json"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.18.2",

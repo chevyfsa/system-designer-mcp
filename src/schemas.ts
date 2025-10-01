@@ -122,19 +122,23 @@ export type MsonModelInferred = z.infer<typeof MsonModelSchema>;
  * These are compile-time checks only and are intentionally unused at runtime
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertAttributeMatch = MsonAttributeInferred extends MsonAttribute ? true : false;
+export type _AssertAttributeMatch = MsonAttributeInferred extends MsonAttribute ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertParameterMatch = MsonParameterInferred extends MsonParameter ? true : false;
+export type _AssertParameterMatch = MsonParameterInferred extends MsonParameter ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertMethodMatch = MsonMethodInferred extends MsonMethod ? true : false;
+export type _AssertMethodMatch = MsonMethodInferred extends MsonMethod ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertEntityMatch = MsonEntityInferred extends MsonEntity ? true : false;
+export type _AssertEntityMatch = MsonEntityInferred extends MsonEntity ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertMultiplicityMatch = MsonMultiplicityInferred extends MsonMultiplicity ? true : false;
+export type _AssertMultiplicityMatch = MsonMultiplicityInferred extends MsonMultiplicity
+  ? true
+  : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertRelationshipMatch = MsonRelationshipInferred extends MsonRelationship ? true : false;
+export type _AssertRelationshipMatch = MsonRelationshipInferred extends MsonRelationship
+  ? true
+  : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertModelMatch = MsonModelInferred extends MsonModel ? true : false;
+export type _AssertModelMatch = MsonModelInferred extends MsonModel ? true : false;
 
 // ============================================================================
 // MCP TOOL INPUT SCHEMAS
@@ -311,28 +315,25 @@ export type SystemRuntimeBundleInferred = z.infer<typeof SystemRuntimeBundleSche
  * These are compile-time checks only and are intentionally unused at runtime
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeMethodSignatureMatch =
+export type _AssertSystemRuntimeMethodSignatureMatch =
   SystemRuntimeMethodSignatureInferred extends SystemRuntimeMethodSignature ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeSchemaMatch = SystemRuntimeSchemaInferred extends SystemRuntimeSchema
+export type _AssertSystemRuntimeSchemaMatch =
+  SystemRuntimeSchemaInferred extends SystemRuntimeSchema ? true : false;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type _AssertSystemRuntimeModelMatch = SystemRuntimeModelInferred extends SystemRuntimeModel
   ? true
   : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeModelMatch = SystemRuntimeModelInferred extends SystemRuntimeModel
+export type _AssertSystemRuntimeTypeMatch = SystemRuntimeTypeInferred extends SystemRuntimeType
   ? true
   : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeTypeMatch = SystemRuntimeTypeInferred extends SystemRuntimeType
-  ? true
-  : false;
+export type _AssertSystemRuntimeBehaviorMatch =
+  SystemRuntimeBehaviorInferred extends SystemRuntimeBehavior ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeBehaviorMatch = SystemRuntimeBehaviorInferred extends SystemRuntimeBehavior
-  ? true
-  : false;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeComponentMatch =
+export type _AssertSystemRuntimeComponentMatch =
   SystemRuntimeComponentInferred extends SystemRuntimeComponent ? true : false;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-type _AssertSystemRuntimeBundleMatch = SystemRuntimeBundleInferred extends SystemRuntimeBundle
-  ? true
-  : false;
+export type _AssertSystemRuntimeBundleMatch =
+  SystemRuntimeBundleInferred extends SystemRuntimeBundle ? true : false;
