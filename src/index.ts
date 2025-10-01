@@ -38,14 +38,44 @@ class SystemDesignerMCPServer {
   private async handleCreateMsonModel(args: unknown): Promise<any> {
     const validationResult = CreateMsonModelInputSchema.safeParse(args);
     if (!validationResult.success) {
+      const errorMessage = this.formatValidationError(validationResult.error, 'create_mson_model');
       return {
-        content: [{ type: 'text', text: `Validation Error: ${validationResult.error.message}` }],
+        content: [{ type: 'text', text: errorMessage }],
         isError: true,
       };
     }
 
     const model = this.ensureUniqueIds(validationResult.data);
     const warnings = this.validateBusinessLogic(model);
+
+    // Check for critical relationship issues that should fail the operation
+    const relationshipErrors = this.validateRelationships(model);
+    if (relationshipErrors.length > 0) {
+      const errorMessage = `❌ Model creation failed due to relationship errors:
+
+${relationshipErrors.map((error) => `  • ${error}`).join('\n')}
+
+💡 **How to fix:**
+• Ensure all relationships reference valid entity IDs
+• Check for typos in entity IDs referenced in relationships
+• Make sure entities are defined before referencing them in relationships
+
+📖 **Valid relationship example:**
+{
+  "relationships": [
+    {
+      "from": "team_entity_id",
+      "to": "player_entity_id",
+      "type": "association"
+    }
+  ]
+}`;
+
+      return {
+        content: [{ type: 'text', text: errorMessage }],
+        isError: true,
+      };
+    }
 
     const successMessage = `MSON Model Created Successfully:
 
@@ -71,22 +101,47 @@ You can now use this model with other tools.`;
   }
 
   private async handleValidateMsonModel(args: unknown): Promise<any> {
-    const { model } = args as { model: unknown };
-    const validationResult = MsonModelSchema.safeParse(model);
+    // Handle both wrapped format { model: ... } and direct model input
+    let modelToValidate: unknown;
+
+    if (typeof args === 'object' && args !== null && 'model' in args) {
+      modelToValidate = (args as { model: unknown }).model;
+    } else {
+      modelToValidate = args;
+    }
+
+    const validationResult = MsonModelSchema.safeParse(modelToValidate);
     if (!validationResult.success) {
+      const errorMessage = this.formatValidationError(
+        validationResult.error,
+        'validate_mson_model'
+      );
       return {
-        content: [
-          {
-            type: 'text',
-            text: `❌ Model Validation Failed:\n\nErrors: ${validationResult.error}`,
-          },
-        ],
+        content: [{ type: 'text', text: errorMessage }],
         isError: true,
       };
     }
 
     const validatedModel = validationResult.data;
     const warnings = this.validateBusinessLogic(validatedModel);
+
+    // Check for critical relationship issues that should fail validation
+    const relationshipErrors = this.validateRelationships(validatedModel);
+    if (relationshipErrors.length > 0) {
+      const errorMessage = `❌ Model validation failed due to relationship errors:
+
+${relationshipErrors.map((error) => `  • ${error}`).join('\n')}
+
+💡 **How to fix:**
+• Ensure all relationships reference valid entity IDs
+• Check for typos in entity IDs referenced in relationships
+• Make sure entities are defined before referencing them in relationships`;
+
+      return {
+        content: [{ type: 'text', text: errorMessage }],
+        isError: true,
+      };
+    }
 
     const successMessage = `✅ Model Validation Successful!
 
@@ -293,8 +348,29 @@ Bundle Structure:
   private async handleValidateSystemRuntimeBundle(args: unknown): Promise<any> {
     const { bundle } = args as { bundle: unknown };
 
+    // Handle both object and string formats
+    let bundleToValidate: unknown;
+
+    if (typeof bundle === 'string') {
+      try {
+        bundleToValidate = JSON.parse(bundle);
+      } catch (parseError) {
+        return {
+          content: [
+            {
+              type: 'text',
+              text: `❌ Invalid JSON bundle: "${bundle}" is not valid JSON. Error: ${parseError instanceof Error ? parseError.message : 'Unknown error'}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    } else {
+      bundleToValidate = bundle;
+    }
+
     try {
-      const validation = validateSystemRuntimeBundle(bundle);
+      const validation = validateSystemRuntimeBundle(bundleToValidate);
 
       const errors = validation.warnings.filter((w) => w.severity === 'error');
       const warnings = validation.warnings.filter((w) => w.severity === 'warning');
@@ -337,13 +413,16 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
   }
 
   private ensureUniqueIds(model: z.infer<typeof CreateMsonModelInputSchema>): MsonModel {
-    return {
-      id: model.id || `model_${Date.now()}`,
-      name: model.name,
-      type: model.type,
-      description: model.description,
-      entities: model.entities.map((entity) => ({
-        id: entity.id || `entity_${randomUUID()}`,
+    // Create ID mapping for entities that need new IDs generated
+    const entityIdMap = new Map<string, string>();
+
+    const processedEntities = model.entities.map((entity) => {
+      const newId = entity.id || `entity_${randomUUID()}`;
+      if (entity.id) {
+        entityIdMap.set(entity.id, newId);
+      }
+      return {
+        id: newId,
         name: entity.name,
         type: entity.type,
         description: entity.description,
@@ -351,38 +430,34 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
         methods: entity.methods || [],
         stereotype: entity.stereotype,
         namespace: entity.namespace,
-      })),
-      relationships: model.relationships.map((relationship) => ({
-        id: relationship.id || `rel_${randomUUID()}`,
-        from: relationship.from,
-        to: relationship.to,
-        type: relationship.type,
-        multiplicity: relationship.multiplicity,
-        name: relationship.name,
-        description: relationship.description,
-      })),
+      };
+    });
+
+    // Process relationships and update entity references if needed
+    const processedRelationships = model.relationships.map((relationship) => ({
+      id: relationship.id || `rel_${randomUUID()}`,
+      from: entityIdMap.get(relationship.from) || relationship.from,
+      to: entityIdMap.get(relationship.to) || relationship.to,
+      type: relationship.type,
+      multiplicity: relationship.multiplicity,
+      name: relationship.name,
+      description: relationship.description,
+    }));
+
+    return {
+      id: model.id || `model_${Date.now()}`,
+      name: model.name,
+      type: model.type,
+      description: model.description,
+      entities: processedEntities,
+      relationships: processedRelationships,
     };
   }
 
   private validateBusinessLogic(model: MsonModel): ValidationWarning[] {
     const warnings: ValidationWarning[] = [];
-    const entityIds = new Set(model.entities.map((e) => e.id));
 
-    for (const relationship of model.relationships) {
-      if (!entityIds.has(relationship.from)) {
-        warnings.push({
-          message: `Relationship '${relationship.id}' references non-existent 'from' entity: ${relationship.from}`,
-          severity: 'warning',
-        });
-      }
-      if (!entityIds.has(relationship.to)) {
-        warnings.push({
-          message: `Relationship '${relationship.id}' references non-existent 'to' entity: ${relationship.to}`,
-          severity: 'warning',
-        });
-      }
-    }
-
+    // Check for entity name duplicates (warning level)
     const entityNames = new Set<string>();
     for (const entity of model.entities) {
       if (entityNames.has(entity.name)) {
@@ -395,6 +470,26 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
     }
 
     return warnings;
+  }
+
+  private validateRelationships(model: MsonModel): string[] {
+    const errors: string[] = [];
+    const entityIds = new Set(model.entities.map((e) => e.id));
+
+    for (const relationship of model.relationships) {
+      if (!entityIds.has(relationship.from)) {
+        errors.push(
+          `Relationship '${relationship.name || relationship.id}' references unknown entity '${relationship.from}' in 'from' field`
+        );
+      }
+      if (!entityIds.has(relationship.to)) {
+        errors.push(
+          `Relationship '${relationship.name || relationship.id}' references unknown entity '${relationship.to}' in 'to' field`
+        );
+      }
+    }
+
+    return errors;
   }
 
   private visibilityToPlantUML(visibility: string): string {
@@ -538,6 +633,87 @@ ${warnings.length > 0 ? `⚠️  Warnings (${warnings.length}):\n${warnings.map(
 
   private sanitizeFilename(name: string): string {
     return name.replace(/[^a-zA-Z0-9]/g, '_');
+  }
+
+  private formatValidationError(error: any, toolName: string): string {
+    const errorDetails =
+      error.issues
+        ?.map((issue: any) => {
+          const path = issue.path?.join('.') || 'root';
+          const expected = issue.expected || 'expected value';
+          const received = issue.received || 'received value';
+          return `  • ${path}: ${issue.message} (expected ${expected}, received ${received})`;
+        })
+        .join('\n') || `  • Unknown validation error: ${error.message}`;
+
+    return `❌ ${toolName} validation failed:
+
+${errorDetails}
+
+💡 **Tips for fixing this issue:**
+${this.getValidationTips(toolName, error.issues || [])}
+
+📖 **Expected format:**
+${this.getExpectedFormatTip(toolName)}`;
+  }
+
+  private getValidationTips(toolName: string, issues: any[]): string {
+    const tips = new Set<string>();
+
+    issues.forEach((issue) => {
+      const path = issue.path?.join('.') || '';
+
+      if (path.includes('name') && issue.code === 'invalid_type') {
+        tips.add('• Ensure all required fields like "name" are provided as strings');
+      }
+      if (path.includes('entities') && issue.code === 'invalid_type') {
+        tips.add('• The "entities" field should be an array (even if empty)');
+      }
+      if (path.includes('id') && issue.code === 'invalid_type') {
+        tips.add('• Entity and relationship IDs should be strings (leave empty to auto-generate)');
+      }
+      if (path.includes('type') && issue.code === 'invalid_enum_value') {
+        tips.add('• Check that entity and relationship types match the allowed values');
+      }
+    });
+
+    if (tips.size === 0) {
+      tips.add('• Check that all required fields are present and have correct types');
+      tips.add('• Refer to the expected format example below');
+    }
+
+    return Array.from(tips).join('\n');
+  }
+
+  private getExpectedFormatTip(toolName: string): string {
+    switch (toolName) {
+      case 'create_mson_model':
+        return `{
+  name: "MyModel",
+  type: "class",
+  description: "Optional description",
+  entities: [
+    {
+      name: "EntityName",
+      type: "class",
+      properties: [
+        { name: "fieldName", type: "string" }
+      ]
+    }
+  ],
+  relationships: []
+}`;
+      case 'validate_mson_model':
+        return `{
+  id: "model_id",
+  name: "MyModel",
+  type: "class",
+  entities: [...],
+  relationships: [...]
+}`;
+      default:
+        return 'Refer to the tool documentation for the correct input format';
+    }
   }
 
   async run(): Promise<void> {

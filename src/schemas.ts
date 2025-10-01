@@ -143,16 +143,25 @@ type _AssertModelMatch = MsonModelInferred extends MsonModel ? true : false;
 /**
  * Input schema for entities (ID is optional - will be auto-generated if missing)
  */
-export const MsonEntityInputSchema = z.object({
-  id: z.string().optional(),
-  name: z.string(),
-  type: z.enum(['class', 'interface', 'enum', 'component', 'actor']),
-  description: z.string().optional(),
-  attributes: z.array(MsonAttributeSchema).optional().default([]),
-  methods: z.array(MsonMethodSchema).optional().default([]),
-  stereotype: z.string().optional(),
-  namespace: z.string().optional(),
-});
+export const MsonEntityInputSchema = z
+  .object({
+    id: z.string().optional(),
+    name: z.string(),
+    type: z.enum(['class', 'interface', 'enum', 'component', 'actor']),
+    description: z.string().optional(),
+    properties: z.array(MsonAttributeSchema).optional(),
+    attributes: z.array(MsonAttributeSchema).optional().default([]),
+    methods: z.array(MsonMethodSchema).optional().default([]),
+    stereotype: z.string().optional(),
+    namespace: z.string().optional(),
+  })
+  .transform((data) => ({
+    ...data,
+    // Support both 'properties' and 'attributes' - map properties to attributes
+    attributes: data.properties || data.attributes || [],
+    // Remove properties from final output to avoid confusion
+    properties: undefined,
+  }));
 
 /**
  * Input schema for relationships (ID is optional - will be auto-generated if missing)
