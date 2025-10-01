@@ -5,7 +5,13 @@
       "WebSearch",
       "mcp__MCP_DOCKER__web_search_exa",
       "mcp__MCP_DOCKER__resolve-library-id",
-      "mcp__MCP_DOCKER__get-library-docs"
+      "mcp__MCP_DOCKER__get-library-docs",
+      "WebFetch(domain:github.com)",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__find_symbol",
+      "mcp__serena__search_for_pattern"
     ],
     "deny": [],
     "ask": []
