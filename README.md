@@ -1,4 +1,5 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/chevyphillip-system-designer-mcp-badge.png)](https://mseep.ai/app/chevyphillip-system-designer-mcp)
+[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/5d7ccf51-18ca-400a-a973-b132fa11ab92)
 
 # System Designer MCP Server
 
