@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/chevyphillip-system-designer-mcp-badge.png)](https://mseep.ai/app/chevyphillip-system-designer-mcp)
+
 # System Designer MCP Server
 
 ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/chevyphillip/system-designer-mcp?utm_source=oss&utm_medium=github&utm_campaign=chevyphillip%2Fsystem-designer-mcp&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
